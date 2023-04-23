@@ -5,12 +5,14 @@ import Data.ByteString (ByteString)
 import Data.List (foldl')
 import Data.Map qualified as Map
 import Data.Map.Strict (Map)
+import Data.Set (Set)
 import Data.Vector.Unboxed qualified as VU
 import Data.Vector.Unboxed.Mutable (IOVector)
 import Data.Vector.Unboxed.Mutable qualified as V
 import Data.Word (Word64)
 
 import Echidna.Types.Tx (TxResult)
+import Echidna.Types.Corpus (Hash)
 
 -- | Map with the coverage information needed for fuzzing and source code printing
 type CoverageMap = Map ByteString (IOVector CoverageInfo)
@@ -21,6 +23,9 @@ type FrozenCoverageMap = Map ByteString (VU.Vector CoverageInfo)
 -- | Basic coverage information
 type CoverageInfo = (OpIx, StackDepths, TxResults)
 
+-- Program Counter directly obtained from the EVM
+type PC = Int
+
 -- | Index per operation in the source code, obtained from the source mapping
 type OpIx = Int
 
@@ -29,6 +34,12 @@ type StackDepths = Word64
 
 -- | Packed TxResults used for coverage, corresponding bits are set
 type TxResults = Word64
+
+-- Map with the frequence (amount of times it was covered) of a given hash of a SequenceCoverage 
+type CorpusCoverageFrequences = Map Hash Int
+
+-- A sequence coverage is determined by the set of PC executed for a given contract
+type SequenceCoverage = Map ByteString (Set PC)
 
 -- | Given good point coverage, count the number of unique points but
 -- only considering the different instruction PCs (discarding the TxResult).

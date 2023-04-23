@@ -15,9 +15,10 @@ import Control.Monad.Trans (lift)
 import Control.Monad.Trans.Random.Strict (liftCatch)
 import Data.Binary.Get (runGetOrFail)
 import Data.ByteString.Lazy qualified as LBS
+import Data.Hashable (hash)
 import Data.IORef (readIORef, writeIORef)
 import Data.Map qualified as Map
-import Data.Map (Map, (\\))
+import Data.Map (Map, (\\), insertWith)
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Set (Set)
 import Data.Set qualified as Set
@@ -45,6 +46,7 @@ import Echidna.Types.Signature (makeBytecodeCache, FunctionName)
 import Echidna.Types.Test
 import Echidna.Types.Tx (TxCall(..), Tx(..), call)
 import Echidna.Types.World (World)
+import Echidna.Types.Coverage
 
 instance MonadThrow m => MonadThrow (RandT g m) where
   throwM = lift . throwM
@@ -116,6 +118,8 @@ runCampaign callback vm world tests dict initialCorpus = do
                         , gasInfo = mempty
                         , genDict = effectiveGenDict
                         , newCoverage = False
+                        , corpusCoverageFrequences = mempty
+                        , currentSequenceCoverage = mempty
                         , corpus = Set.empty
                         , ncallseqs = 0
                         }
@@ -184,7 +188,7 @@ randseq deployedContracts world = do
   let mut = getCorpusMutation cmut
   if null campaign.corpus
     then pure randTxs -- Use the generated random transactions
-    else mut seqLen campaign.corpus randTxs -- Apply the mutator
+    else mut seqLen campaign.corpus randTxs campaign.corpusCoverageFrequences -- Apply the mutator
 
 -- | Runs a transaction sequence and checks if any test got falsified or can be
 -- minimized. Stores any useful data in the campaign state if coverage increased.
@@ -242,10 +246,13 @@ callseq vm txSeq = do
     , corpus =
         if camp'.newCoverage
            -- corpus is a bit too lazy, force the evaluation to reduce the memory usage
-           then force $ addToCorpus (camp'.ncallseqs + 1) res camp'.corpus
+           then force $ addToCorpus camp'.currentSequenceCoverage res camp'.corpus
            else camp'.corpus
       -- Reset the new coverage flag
     , newCoverage = False
+    , corpusCoverageFrequences = updateFrequence camp'.currentSequenceCoverage camp'.corpusCoverageFrequences
+      -- Reset the current sequence path
+    , currentSequenceCoverage = mempty
       -- Keep track of the number of calls to `callseq`
     , ncallseqs = camp'.ncallseqs + 1
     }
@@ -275,10 +282,16 @@ callseq vm txSeq = do
         _ -> Nothing
 
   -- | Add transactions to the corpus discarding reverted ones
-  addToCorpus :: Int -> [(Tx, (VMResult, Gas))] -> Corpus -> Corpus
-  addToCorpus n res corpus =
-    if null rtxs then corpus else Set.insert (n, rtxs) corpus
+  addToCorpus :: SequenceCoverage -> [(Tx, (VMResult, Gas))] -> Corpus -> Corpus
+  addToCorpus seqCov res corpus =
+    if null rtxs then corpus else Set.insert (hash seqCov, rtxs) corpus
     where rtxs = fst <$> res
+
+  -- | Increase the frequence of the corresponding corpus item
+  updateFrequence :: SequenceCoverage -> CorpusCoverageFrequences -> CorpusCoverageFrequences
+  updateFrequence seqCov = insertWith (+) (hash seqCov) 1
+    
+
 
 -- | Execute a transaction, capturing the PC and codehash of each instruction
 -- executed, saving the transaction if it finds new coverage.
@@ -287,9 +300,9 @@ execTxOptC
   => Tx
   -> m (VMResult, Gas)
 execTxOptC tx = do
-  (vm, camp@Campaign{coverage = oldCov}) <- get
-  ((res, (cov', grew)), vm') <- runStateT (execTxWithCov tx oldCov) vm
-  put (vm', camp { coverage = cov' })
+  (vm, camp@Campaign{coverage = oldCov, currentSequenceCoverage = oldCurrentSeqCov}) <- get
+  ((res, (cov', currentSeqCov, grew)), vm') <- runStateT (execTxWithCov tx oldCov oldCurrentSeqCov) vm
+  put (vm', camp { coverage = cov', currentSequenceCoverage = currentSeqCov })
   when grew $ do
     let dict' = case tx.call of
           SolCall c -> gaddCalls (Set.singleton c) camp.genDict

@@ -1,7 +1,6 @@
 module Echidna.Mutator.Corpus where
 
 import Control.Monad.Random.Strict (MonadRandom, getRandomR, weighted)
-import Data.Set (Set)
 import Data.Set qualified as Set
 
 import Echidna.Mutator.Array
@@ -9,6 +8,8 @@ import Echidna.Transaction (mutateTx, shrinkTx)
 import Echidna.Types (MutationConsts)
 import Echidna.Types.Tx (Tx)
 import Echidna.Types.Corpus
+import Echidna.Types.Coverage (CorpusCoverageFrequences)
+import Data.Map (findWithDefault)
 
 defaultMutationConsts :: Num a => MutationConsts a
 defaultMutationConsts = (1, 1, 1, 1)
@@ -38,13 +39,19 @@ mutator Expansion = expandRandList
 mutator Swapping = swapRandList
 mutator Deletion = deleteRandList
 
+computeEnergies :: CorpusCoverageFrequences -> Corpus -> [([Tx], Rational)]
+computeEnergies corpusCovFreq =
+  map (\(hash, txs) -> (txs, 1 / fromIntegral (findWithDefault 0 hash corpusCovFreq))) . Set.toDescList
+
+
 selectAndMutate
   :: MonadRandom m
-  => ([Tx] -> m [Tx])
+  => CorpusCoverageFrequences
+  -> ([Tx] -> m [Tx])
   -> Corpus
   -> m [Tx]
-selectAndMutate f corpus = do
-  rtxs <- selectFromCorpus corpus
+selectAndMutate corpusCovFreq f corpus = do
+  rtxs <- weighted $ computeEnergies corpusCovFreq corpus
   k <- getRandomR (0, length rtxs - 1)
   f $ take k rtxs
 
@@ -54,33 +61,37 @@ selectAndCombine
   -> Int
   -> Corpus
   -> [Tx]
+  -> CorpusCoverageFrequences
   -> m [Tx]
-selectAndCombine f ql corpus gtxs = do
-  rtxs1 <- selectFromCorpus corpus
-  rtxs2 <- selectFromCorpus corpus
+selectAndCombine f ql corpus gtxs corpusCovFreq = do
+  let computedEnergies = computeEnergies corpusCovFreq corpus
+  let selectFromCorpus = weighted computedEnergies
+  rtxs1 <- selectFromCorpus
+  rtxs2 <- selectFromCorpus
   txs <- f rtxs1 rtxs2
   pure . take ql $ txs <> gtxs
 
-selectFromCorpus
-  :: MonadRandom m
-  => Set (Int, [Tx])
-  -> m [Tx]
-selectFromCorpus =
-  weighted . map (\(i, txs) -> (txs, fromIntegral i)) . Set.toDescList
+-- selectFromCorpus
+--   :: MonadRandom m
+--   => CorpusCoverageFrequences
+--   -> Set (Int, [Tx])
+--   -> m [Tx]
+-- selectFromCorpus corpusCovFreq =
+--   weighted . map (\(hash, txs) -> (txs, 1 / fromIntegral (findWithDefault 0 hash corpusCovFreq))) . Set.toDescList
 
 getCorpusMutation
   :: MonadRandom m
   => CorpusMutation
-  -> (Int -> Corpus -> [Tx] -> m [Tx])
+  -> (Int -> Corpus -> [Tx] -> CorpusCoverageFrequences -> m [Tx])
 getCorpusMutation (RandomAppend m) = mut (mutator m)
   where
-    mut f ql ctxs gtxs = do
-      rtxs' <- selectAndMutate f ctxs
+    mut f ql ctxs gtxs corpusCovFreq = do
+      rtxs' <- selectAndMutate corpusCovFreq f ctxs
       pure . take ql $ rtxs' ++ gtxs
 getCorpusMutation (RandomPrepend m) = mut (mutator m)
   where
-    mut f ql ctxs gtxs = do
-      rtxs' <- selectAndMutate f ctxs
+    mut f ql ctxs gtxs corpusCovFreq = do
+      rtxs' <- selectAndMutate corpusCovFreq f ctxs
       k <- getRandomR (0, ql - 1)
       pure . take ql $ take k gtxs ++ rtxs'
 getCorpusMutation RandomSplice = selectAndCombine spliceAtRandom

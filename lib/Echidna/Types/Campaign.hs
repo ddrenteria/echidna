@@ -7,7 +7,7 @@ import Echidna.ABI (GenDict, emptyDict)
 import Echidna.Output.Source (CoverageFileType)
 import Echidna.Types
 import Echidna.Types.Corpus
-import Echidna.Types.Coverage (CoverageMap, FrozenCoverageMap)
+import Echidna.Types.Coverage (CoverageMap, FrozenCoverageMap, SequenceCoverage, CorpusCoverageFrequences)
 import Echidna.Types.Test (EchidnaTest)
 import Echidna.Types.Tx (Tx)
 
@@ -54,6 +54,10 @@ data GenericCampaign a = Campaign
     -- ^ Generation dictionary
   , newCoverage :: !Bool
     -- ^ Flag to indicate new coverage found
+  , corpusCoverageFrequences :: !CorpusCoverageFrequences
+    -- ^ Map with the frequences of the corpus elements' sequence coverage
+  , currentSequenceCoverage :: !SequenceCoverage
+    -- ^ Current coverage of sequence executed
   , corpus      :: !Corpus
     -- ^ List of transactions with maximum coverage
   , ncallseqs   :: !Int
@@ -61,7 +65,7 @@ data GenericCampaign a = Campaign
   }
 
 defaultCampaign :: Monoid a => GenericCampaign a
-defaultCampaign = Campaign mempty mempty mempty emptyDict False mempty 0
+defaultCampaign = Campaign mempty mempty mempty emptyDict False mempty mempty mempty 0
 
 defaultTestLimit :: Int
 defaultTestLimit = 50000
