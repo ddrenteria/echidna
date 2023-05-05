@@ -188,7 +188,7 @@ for test_limit in test_limits:
             iterations_results_og = []
 
             for iteration in range(0, run_amount):
-                print("TestLimit: " + str(test_limit) + " SeqLen: " + str(seqLen) + " Maze: " + str(maze) + " iteration: " + iteration)
+                print("TestLimit: " + str(test_limit) + " SeqLen: " + str(seqLen) + " Maze: " + str(maze) + " iteration: " + str(iteration))
                 run_both_echidnas(test_limit, MAX_TIMEOUT, seqLen, maze, iteration)
                 array_ours, array_og = extract_results(test_limit, MAX_TIMEOUT, seqLen, maze, iteration)
                 iterations_results_ours.append(array_ours)
@@ -209,7 +209,7 @@ for timeout in timeout_limits:
             iterations_results_og = []
 
             for iteration in range(0, run_amount):
-                print("Timeout: " + str(timeout) + " SeqLen: " + str(seqLen) + " Maze: " + str(maze) + " iteration: " + iteration)
+                print("Timeout: " + str(timeout) + " SeqLen: " + str(seqLen) + " Maze: " + str(maze) + " iteration: " + str(iteration))
                 run_both_echidnas(MAX_TESTLIMIT, timeout, seqLen, maze, iteration)
                 array_ours, array_og = extract_results(MAX_TESTLIMIT, timeout, seqLen, maze, iteration)
                 iterations_results_ours.append(array_ours)
