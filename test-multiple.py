@@ -9,7 +9,7 @@ run_amount = 10
 # Mazes to run
 mazes = [0]
 # Test limits to use 
-test_limits = [700000]
+test_limits = [1000, 700000]
 # Timeout limits to use
 timeout_limits = [60]
 # Sequence lengths to use
