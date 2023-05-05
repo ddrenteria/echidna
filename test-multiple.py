@@ -1,19 +1,20 @@
 import numpy as np
 import subprocess
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 # Amount of times to run
-run_amount = 2
+run_amount = 10
 # Mazes to run
 mazes = [0]
 # Test limits to use 
-test_limits = [30000]
+test_limits = [700000]
 # Timeout limits to use
-timeout_limits = []
+timeout_limits = [60]
 # Sequence lengths to use
 # seqLens = [1, 10, 100]
-seqLens = [1]
+seqLens = [1, 10, 100]
 
 # For each combination run echidna
     # Save time, #tests results in file
@@ -23,7 +24,7 @@ seqLens = [1]
 # Run for timeouts
 
 OURS_ECHIDNA_PATH = "./"
-OG_ECHIDNA_PATH = "~/Desktop/Tesis/echidna-last-version-og/echidna"
+OG_ECHIDNA_PATH = "~/Desktop/tesis/og/echidna"
 
 MAX_TIMEOUT = 10 * 60 * 60 # 10 hours
 MAX_TESTLIMIT = 2000000000
@@ -47,7 +48,7 @@ def run_both_echidnas(testLimit, timeout_minutes, seqLen, mazeNumber, iteration)
    
     timeout = timeout_minutes * 60
     coverage = "true"
-    testMode = "exploration"
+    testMode = "property"
     format = "text"
     shrinkLimit = 1
     config = f"shrinkLimit: {shrinkLimit}\ntestLimit: {testLimit}\ncoverage: {coverage}\nseqLen: {seqLen}\ntestMode: \"{testMode}\"\ntimeout: {timeout}\nformat: {format}"
@@ -167,6 +168,16 @@ def create_average(iterations_results, path):
     # return as df
     return df_result
 
+def create_plot_average(df_ours, df_og, path):
+    
+    plt.plot(np.array(df_ours["time"]), np.array(df_ours["tests_discovered"]))
+    plt.plot(np.array(df_og["time"]), np.array(df_og["tests_discovered"]))
+    plt.xlabel("time (s)")
+    plt.ylabel("# tests")
+    plt.legend(['ours', 'original'])
+    plt.title('Amount of tests discovered through time')
+    plt.savefig(path + "/average_comparison.jpg")
+
 
 # Main  ---------------------------------------------------
 
@@ -177,6 +188,7 @@ for test_limit in test_limits:
             iterations_results_og = []
 
             for iteration in range(0, run_amount):
+                print("TestLimit: " + str(test_limit) + " SeqLen: " + str(seqLen) + " Maze: " + str(maze) + " iteration: " + iteration)
                 run_both_echidnas(test_limit, MAX_TIMEOUT, seqLen, maze, iteration)
                 array_ours, array_og = extract_results(test_limit, MAX_TIMEOUT, seqLen, maze, iteration)
                 iterations_results_ours.append(array_ours)
@@ -188,4 +200,26 @@ for test_limit in test_limits:
             # create_average() 
             df_ours = create_average(iterations_results_ours, get_test_path(test_limit, MAX_TIMEOUT, seqLen, maze, "ours"))
             df_og = create_average(iterations_results_og, get_test_path(test_limit, MAX_TIMEOUT, seqLen, maze, "og"))  
-            # create_plot_average()
+            create_plot_average(df_ours, df_og, get_test_path_base(test_limit, MAX_TIMEOUT, seqLen, maze))
+
+for timeout in timeout_limits:
+    for seqLen in seqLens:
+        for maze in mazes:
+            iterations_results_ours = []
+            iterations_results_og = []
+
+            for iteration in range(0, run_amount):
+                print("Timeout: " + str(timeout) + " SeqLen: " + str(seqLen) + " Maze: " + str(maze) + " iteration: " + iteration)
+                run_both_echidnas(MAX_TESTLIMIT, timeout, seqLen, maze, iteration)
+                array_ours, array_og = extract_results(MAX_TESTLIMIT, timeout, seqLen, maze, iteration)
+                iterations_results_ours.append(array_ours)
+                iterations_results_og.append(array_og)
+
+                # Save results
+                save_results(array_ours, get_test_path_iteration(MAX_TESTLIMIT, timeout, seqLen, maze, iteration, "ours"))
+                save_results(array_og, get_test_path_iteration(MAX_TESTLIMIT, timeout, seqLen, maze, iteration, "og"))
+            # create_average() 
+            df_ours = create_average(iterations_results_ours, get_test_path(MAX_TESTLIMIT, timeout, seqLen, maze, "ours"))
+            df_og = create_average(iterations_results_og, get_test_path(MAX_TESTLIMIT, timeout, seqLen, maze, "og"))  
+            create_plot_average(df_ours, df_og, get_test_path_base(MAX_TESTLIMIT, timeout, seqLen, maze))
+
