@@ -7,14 +7,14 @@ import matplotlib.pyplot as plt
 # Amount of times to run
 run_amount = 10
 # Mazes to run
-mazes = [1, 2, 3, 4]
+mazes = [0]
 # Test limits to use 
-test_limits = [2000000]
+test_limits = [1000, 700000]
 # Timeout limits to use
-timeout_limits = []
+timeout_limits = [60]
 # Sequence lengths to use
 # seqLens = [1, 10, 100]
-seqLens = [10, 100, 200]
+seqLens = [1, 10, 100]
 
 # For each combination run echidna
     # Save time, #tests results in file
@@ -179,6 +179,8 @@ def create_plot_average(df_ours, df_og, path):
     plt.savefig(path + "/average_comparison.jpg")
     plt.clf()
 
+def get_df(path):
+    return pd.read_csv(path)
 
 # Main  ---------------------------------------------------
 
@@ -188,39 +190,17 @@ for test_limit in test_limits:
             iterations_results_ours = []
             iterations_results_og = []
 
-            for iteration in range(0, run_amount):
-                print("TestLimit: " + str(test_limit) + " SeqLen: " + str(seqLen) + " Maze: " + str(maze) + " iteration: " + str(iteration))
-                run_both_echidnas(test_limit, MAX_TIMEOUT, seqLen, maze, iteration)
-                array_ours, array_og = extract_results(test_limit, MAX_TIMEOUT, seqLen, maze, iteration)
-                iterations_results_ours.append(array_ours)
-                iterations_results_og.append(array_og)
-
-                # Save results
-                save_results(array_ours, get_test_path_iteration(test_limit, MAX_TIMEOUT, seqLen, maze, iteration, "ours"))
-                save_results(array_og, get_test_path_iteration(test_limit, MAX_TIMEOUT, seqLen, maze, iteration, "og"))
             # create_average() 
-            df_ours = create_average(iterations_results_ours, get_test_path(test_limit, MAX_TIMEOUT, seqLen, maze, "ours"))
-            df_og = create_average(iterations_results_og, get_test_path(test_limit, MAX_TIMEOUT, seqLen, maze, "og"))  
+            df_ours = get_df(get_test_path(test_limit, MAX_TIMEOUT, seqLen, maze, "ours") + "/results_average.csv")
+            df_og = get_df(get_test_path(test_limit, MAX_TIMEOUT, seqLen, maze, "og") + "/results_average.csv")  
             create_plot_average(df_ours, df_og, get_test_path_base(test_limit, MAX_TIMEOUT, seqLen, maze))
 
 for timeout in timeout_limits:
     for seqLen in seqLens:
         for maze in mazes:
-            iterations_results_ours = []
-            iterations_results_og = []
 
-            for iteration in range(0, run_amount):
-                print("Timeout: " + str(timeout) + " SeqLen: " + str(seqLen) + " Maze: " + str(maze) + " iteration: " + str(iteration))
-                run_both_echidnas(MAX_TESTLIMIT, timeout, seqLen, maze, iteration)
-                array_ours, array_og = extract_results(MAX_TESTLIMIT, timeout, seqLen, maze, iteration)
-                iterations_results_ours.append(array_ours)
-                iterations_results_og.append(array_og)
-
-                # Save results
-                save_results(array_ours, get_test_path_iteration(MAX_TESTLIMIT, timeout, seqLen, maze, iteration, "ours"))
-                save_results(array_og, get_test_path_iteration(MAX_TESTLIMIT, timeout, seqLen, maze, iteration, "og"))
             # create_average() 
-            df_ours = create_average(iterations_results_ours, get_test_path(MAX_TESTLIMIT, timeout, seqLen, maze, "ours"))
-            df_og = create_average(iterations_results_og, get_test_path(MAX_TESTLIMIT, timeout, seqLen, maze, "og"))  
+            df_ours = get_df(get_test_path(MAX_TESTLIMIT, timeout, seqLen, maze, "ours") + "/results_average.csv")
+            df_og = get_df(get_test_path(MAX_TESTLIMIT, timeout, seqLen, maze, "og") + "/results_average.csv")  
             create_plot_average(df_ours, df_og, get_test_path_base(MAX_TESTLIMIT, timeout, seqLen, maze))
 
