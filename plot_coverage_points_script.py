@@ -3,18 +3,15 @@ import subprocess
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
-# Amount of times to run
-run_amount = 10
 # Mazes to run
 mazes = [0]
 # Test limits to use 
-test_limits = [1000, 700000]
+test_limits = [700000]
 # Timeout limits to use
 timeout_limits = [60]
 # Sequence lengths to use
 # seqLens = [1, 10, 100]
-seqLens = [1, 10, 100]
+seqLens = [10, 100]
 
 # For each combination run echidna
     # Save time, #tests results in file
@@ -44,15 +41,16 @@ def get_test_path_base(testLimit, timeout_minutes, seqLen, mazeNumber):
     return f"echidna-test/seqLen_{seqLen}_timeout_{timeout_minutes}_testLim_{testLimit}_maze_{mazeNumber}"
 
 
-def create_plot_average(df_ours, df_og, path):
-    
-    plt.plot(np.array(df_ours["time"]), np.array(df_ours["tests_discovered"]))
-    plt.plot(np.array(df_og["time"]), np.array(df_og["tests_discovered"]))
+def create_plot_coverage_points(df_ours, df_og, path, seqLen):
+    df_ours = df_ours[df_ours["coverage_points"]>0]
+    df_og = df_og[df_og["coverage_points"]>0]
+    plt.plot(np.array(df_ours["time"]), np.array(df_ours["coverage_points"]))
+    plt.plot(np.array(df_og["time"]), np.array(df_og["coverage_points"]))
     plt.xlabel("time (s)")
-    plt.ylabel("# tests")
+    plt.ylabel("coverage points")
     plt.legend(['ours', 'original'])
-    plt.title('Amount of tests discovered through time')
-    plt.savefig(path + "/average_comparison.jpg")
+    plt.title('Coverage points through time\nSequence length: ' + str(seqLen))
+    plt.savefig(path + "/average_comparison_coverage_points_zoom.jpg")
     plt.clf()
 
 def get_df(path):
@@ -69,7 +67,7 @@ for test_limit in test_limits:
             # create_average() 
             df_ours = get_df(get_test_path(test_limit, MAX_TIMEOUT, seqLen, maze, "ours") + "/results_average.csv")
             df_og = get_df(get_test_path(test_limit, MAX_TIMEOUT, seqLen, maze, "og") + "/results_average.csv")  
-            create_plot_average(df_ours, df_og, get_test_path_base(test_limit, MAX_TIMEOUT, seqLen, maze))
+            create_plot_coverage_points(df_ours, df_og, get_test_path_base(test_limit, MAX_TIMEOUT, seqLen, maze), seqLen)
 
 for timeout in timeout_limits:
     for seqLen in seqLens:
@@ -78,5 +76,5 @@ for timeout in timeout_limits:
             # create_average() 
             df_ours = get_df(get_test_path(MAX_TESTLIMIT, timeout, seqLen, maze, "ours") + "/results_average.csv")
             df_og = get_df(get_test_path(MAX_TESTLIMIT, timeout, seqLen, maze, "og") + "/results_average.csv")  
-            create_plot_average(df_ours, df_og, get_test_path_base(MAX_TESTLIMIT, timeout, seqLen, maze))
+            create_plot_coverage_points(df_ours, df_og, get_test_path_base(MAX_TESTLIMIT, timeout, seqLen, maze), seqLen)
 
