@@ -66,7 +66,7 @@ selectFromCorpus
   => Set (Int, [Tx])
   -> m [Tx]
 selectFromCorpus =
-  weighted . map (\(i, txs) -> (txs, fromIntegral i)) . Set.toDescList
+  weighted . map (\(_, txs) -> (txs, fromIntegral 1)) . Set.toDescList
 
 getCorpusMutation
   :: MonadRandom m
