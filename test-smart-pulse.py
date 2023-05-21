@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 
 
 # Amount of times to run
-run_amount = 10
+run_amount = 1
 # Contracts to run
-contracts = ["example"]
+contracts = ["Auction"]
 # Test limits to use 
-test_limits = [2000000]
+test_limits = [20000]
 # Timeout limits to use
 timeout_limits = []
 # Sequence lengths to use
@@ -44,7 +44,7 @@ def get_test_path_base(testLimit, timeout_minutes, seqLen, contractName):
     return f"echidna-test/seqLen_{seqLen}_timeout_{timeout_minutes}_testLim_{testLimit}/{contractName}"
 
 
-def run_echidnas(testLimit, timeout_minutes, seqLen, mazeNumber, iteration, contract_name):
+def run_echidnas(testLimit, timeout_minutes, seqLen, contract_name, iteration):
     timeout = timeout_minutes * 60
     coverage = "true"
     testMode = "exploration"
@@ -215,7 +215,7 @@ def create_plot_average(df_ours, df_og, df_random, path, seqLen):
     plt.xlabel("time (s)")
     plt.ylabel("# tests")
     plt.legend(['ours', 'original', 'random'])
-    plt.title('Amount of tests discovered through time\nSequence length: ' + str(seqLen)')
+    plt.title('Amount of tests discovered through time\nSequence length: ' + str(seqLen))
     plt.savefig(path + "/average_comparison.jpg")
     plt.clf()
 
