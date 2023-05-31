@@ -4,13 +4,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Mazes to run
-mazes = [0, 1, 2, 3, 4]
+mazes = [1]
 # Test limits to use 
 test_limits = [2000000]
 # Timeout limits to use
 timeout_limits = []
 # Sequence lengths to use
-seqLens = [10, 100, 200]
+seqLens = [10]
 
 OURS_ECHIDNA_PATH = "./"
 OG_ECHIDNA_PATH = "~/Desktop/tesis/og/echidna"
@@ -60,7 +60,7 @@ def create_plot_average(df_ours, df_og, df_random, path, seqLen):
     plt.xlabel("time (s)")
     plt.ylabel("# tests")
     plt.legend(['ours', 'original', 'random'])
-    plt.title('Amount of tests discovered through time\nSequence length: ' + str(seqLen)')
+    plt.title('Amount of tests discovered through time\nSequence length: ' + str(seqLen))
     plt.savefig(path + "/average_comparison.jpg")
     plt.clf()
 
