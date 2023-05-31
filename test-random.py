@@ -59,7 +59,7 @@ def run_echidna(testLimit, timeout_minutes, seqLen, mazeNumber, iteration):
     # contract_dir = "/home/zhaeres/Desktop/Tesis/echidna/tests/solidity/thesis-investigation/contract-craft-v2-assert.sol"
 
     our_compile_command = f"cd {RANDOM_ECHIDNA_PATH} && stack install --extra-include-dirs=/home/zhaeres/.local/include/ --extra-lib-dirs=libff/build/libff/ --flag echidna:-static > trash.txt"
-    our_run_command = f"echidna {contract_dir} --config config.yaml > {path_ours}/script_output.txt"
+    our_run_command = f"echidna {contract_dir} --config config_random.yaml > {path_ours}/script_output.txt"
 
     # Create dirs
     subprocess.run(f"mkdir -p " + get_test_path_base(testLimit, timeout_minutes, seqLen, mazeNumber), shell=True)
