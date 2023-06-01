@@ -15,9 +15,9 @@ contract Auction {
     mapping(address => uint) pendingReturns;
 
     constructor() public {
-        auctionStart = 10;
-        biddingTime = 2000;
-        beneficiary = address(1);
+        auctionStart = 4400000;
+        biddingTime = 500000;
+        beneficiary = address(0x10000);
     }
 
     function Bid() public payable {

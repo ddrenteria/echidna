@@ -9,9 +9,9 @@ contract Crowdfunding {
     bool funded = false;
 
     constructor() public {
-        owner = address(1);
-        max_block = 50000;
-        goal = 10000;
+        owner = address(0x10000);
+        max_block = 4600000;
+        goal = 1000000;
     }
 
     function Donate() public payable {

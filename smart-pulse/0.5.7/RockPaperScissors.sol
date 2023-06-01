@@ -11,9 +11,9 @@ contract RockPaperScissors {
     uint[3][3] payoffMatrix;
 
     constructor() public {
-        player1 = address(1);
-        player2 = address(2);
-        owner = address(3);
+        player1 = address(0x10000);
+        player2 = address(0x20000);
+        owner = address(0x30000);
 
         //Rock - 0
         //Paper - 1
