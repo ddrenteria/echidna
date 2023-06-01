@@ -68,7 +68,7 @@ def run_echidnas(testLimit, timeout_minutes, seqLen, contract_name, iteration):
     random_compile_command = f"cd {RANDOM_ECHIDNA_PATH} && stack install --extra-include-dirs=/home/zhaeres/.local/include/ --extra-lib-dirs=libff/build/libff/ --flag echidna:-static > trash.txt"
     our_run_command = f"echidna {contract_dir} --config config.yaml > {path_ours}/script_output.txt"
     og_run_command = f"echidna {contract_dir} --config config_og.yaml > {path_og}/script_output.txt"
-    random_run_command = f"echidna {contract_dir} --config config_og.yaml > {path_random}/script_output.txt"
+    random_run_command = f"echidna {contract_dir} --config config_random.yaml > {path_random}/script_output.txt"
 
     # Create dirs
     subprocess.run(f"mkdir -p " + get_test_path_base(testLimit, timeout_minutes, seqLen, contract_name), shell=True)
