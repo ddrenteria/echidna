@@ -237,10 +237,11 @@ contract ValidatorAuction is Ownable {
     constructor() public {
 
         startPrice = 50;
-        auctionDurationInDays = 19;
-        maximalNumberOfParticipants = 85;
+        auctionDurationInDays = 4;
+        maximalNumberOfParticipants = 50;
         minimalNumberOfParticipants = 1;
         depositLocker = new DepositLocker();
+        depositLocker.init(block.timestamp, address(0x10000), address(0x30000));
 
         lowestSlotPrice = uint(115792089237316195423570985008687907853269984665640564039457584007913129639935);
 
@@ -406,7 +407,7 @@ contract ValidatorAuction is Ownable {
 
         bids[msg.sender] = 0;
 
-        msg.sender.transfer(valueToWithdraw);
+        payable(msg.sender).transfer(valueToWithdraw);
     }
 
     function transitionToDepositPending()
