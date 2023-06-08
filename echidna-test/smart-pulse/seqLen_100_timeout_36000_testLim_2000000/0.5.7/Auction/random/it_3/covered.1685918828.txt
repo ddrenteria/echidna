@@ -1,0 +1,66 @@
+/home/zhaeres/Desktop/Tesis/ours/echidna/smart-pulse/0.5.7/Auction.sol
+  1 |     | pragma solidity ^0.5.0;
+  2 |     | 
+  3 |     | // bugs:
+  4 |     | // 1. Auction can never end
+  5 |     | // 2. highest bidder can never be refunded their highest bid
+  6 |     | 
+  7 | *   | contract Auction {
+  8 |     |     uint auctionStart;
+  9 |     |     uint biddingTime;
+ 10 |     |     address payable beneficiary;
+ 11 |     | 
+ 12 |     |     bool ended = false;
+ 13 |     |     address payable highestBidder = address(0);
+ 14 |     |     uint highestBid = 0;
+ 15 |     |     mapping(address => uint) pendingReturns;
+ 16 |     | 
+ 17 |     |     constructor() public {
+ 18 |     |         auctionStart = 4400000;
+ 19 |     |         biddingTime = 500000;
+ 20 |     |         beneficiary = address(0x10000);
+ 21 |     |     }
+ 22 |     | 
+ 23 | *   |     function Bid() public payable {
+ 24 | *   |         uint end = auctionStart + biddingTime;
+ 25 | *   |         if(end < block.number || ended) {
+ 26 | *r  |             revert();
+ 27 |     |         }
+ 28 |     |         else {
+ 29 | *   |             if(msg.value <= highestBid) {
+ 30 | *r  |                 revert();
+ 31 |     |             }
+ 32 |     |             else {
+ 33 | *   |                 pendingReturns[highestBidder] += highestBid; 
+ 34 | *   |                 highestBidder = msg.sender;
+ 35 | *   |                 highestBid = msg.value;
+ 36 |     |             }
+ 37 |     |         }
+ 38 |     |     }
+ 39 |     | 
+ 40 | *   |     function Withdraw() public {
+ 41 | *   |         if(pendingReturns[msg.sender] != 0) {
+ 42 | *   |             uint pr = pendingReturns[msg.sender];
+ 43 | *   |             pendingReturns[msg.sender] = 0;
+ 44 | *   |             msg.sender.transfer(pr);
+ 45 |     |         }
+ 46 |     |         else {
+ 47 | *r  |             revert();
+ 48 |     |         }
+ 49 |     |     }
+ 50 |     | 
+ 51 | *   |     function AuctionEnd() public {
+ 52 | *   |         uint end = auctionStart + biddingTime;
+ 53 |     | 
+ 54 |     |         //!ended is a bug
+ 55 | *   |         if(block.number <= end || !ended) {
+ 56 | *r  |             revert();
+ 57 |     |         }
+ 58 |     |         else {
+ 59 |     |             ended = true;
+ 60 |     |             beneficiary.transfer(highestBid);
+ 61 |     |         }
+ 62 |     |     }
+ 63 |     | }
+ 64 |     | 
+

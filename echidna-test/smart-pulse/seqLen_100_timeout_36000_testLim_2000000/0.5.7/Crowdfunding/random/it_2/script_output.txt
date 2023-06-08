@@ -1,57 +1,56 @@
-[2023-05-31 17:59:30.07] Compiling smart-pulse/0.5.7/Crowdfunding.sol... Done! (0.240857197s)
+[2023-06-04 20:57:26.23] Compiling smart-pulse/0.5.7/Crowdfunding.sol... Done! (0.224543461s)
 Analyzing contract: /home/zhaeres/Desktop/Tesis/ours/echidna/smart-pulse/0.5.7/Crowdfunding.sol:Crowdfunding
-[2023-05-31 17:59:30.32] Running slither on smart-pulse/0.5.7/Crowdfunding.sol... Done! (0.31450325s)
-Loaded 0 transaction sequences from echidna-test/smart-pulse/seqLen_100_timeout_36000_testLim_2000000/0.5.7/Crowdfunding/og/it_2/reproducers
-Loaded 3 transaction sequences from echidna-test/smart-pulse/seqLen_100_timeout_36000_testLim_2000000/0.5.7/Crowdfunding/og/it_2/coverage
-[2023-05-31 17:59:33.66] [status] tests: 0/1, fuzzing: 42502/2000000, cov: 147, corpus: 2
-[2023-05-31 17:59:36.66] [status] tests: 0/1, fuzzing: 85664/2000000, cov: 147, corpus: 2
-[2023-05-31 17:59:39.66] [status] tests: 0/1, fuzzing: 129034/2000000, cov: 147, corpus: 2
-[2023-05-31 17:59:42.67] [status] tests: 0/1, fuzzing: 171277/2000000, cov: 147, corpus: 2
-[2023-05-31 17:59:45.67] [status] tests: 0/1, fuzzing: 214013/2000000, cov: 147, corpus: 2
-[2023-05-31 17:59:48.67] [status] tests: 0/1, fuzzing: 256976/2000000, cov: 147, corpus: 2
-[2023-05-31 17:59:51.67] [status] tests: 0/1, fuzzing: 299533/2000000, cov: 147, corpus: 2
-[2023-05-31 17:59:54.67] [status] tests: 0/1, fuzzing: 342212/2000000, cov: 147, corpus: 2
-[2023-05-31 17:59:57.67] [status] tests: 0/1, fuzzing: 384794/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:00.68] [status] tests: 0/1, fuzzing: 427658/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:03.68] [status] tests: 0/1, fuzzing: 470626/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:06.68] [status] tests: 0/1, fuzzing: 512724/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:09.68] [status] tests: 0/1, fuzzing: 555608/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:12.68] [status] tests: 0/1, fuzzing: 597778/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:15.69] [status] tests: 0/1, fuzzing: 640450/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:18.69] [status] tests: 0/1, fuzzing: 683240/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:21.69] [status] tests: 0/1, fuzzing: 725844/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:24.69] [status] tests: 0/1, fuzzing: 768192/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:27.69] [status] tests: 0/1, fuzzing: 811445/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:30.70] [status] tests: 0/1, fuzzing: 854565/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:33.70] [status] tests: 0/1, fuzzing: 897061/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:36.70] [status] tests: 0/1, fuzzing: 939443/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:39.70] [status] tests: 0/1, fuzzing: 982666/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:42.70] [status] tests: 0/1, fuzzing: 1025348/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:45.70] [status] tests: 0/1, fuzzing: 1067953/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:48.71] [status] tests: 0/1, fuzzing: 1110558/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:51.71] [status] tests: 0/1, fuzzing: 1152804/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:54.71] [status] tests: 0/1, fuzzing: 1195313/2000000, cov: 147, corpus: 2
-[2023-05-31 18:00:57.71] [status] tests: 0/1, fuzzing: 1237558/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:00.71] [status] tests: 0/1, fuzzing: 1279286/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:03.72] [status] tests: 0/1, fuzzing: 1321024/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:06.72] [status] tests: 0/1, fuzzing: 1363455/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:09.72] [status] tests: 0/1, fuzzing: 1406245/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:12.72] [status] tests: 0/1, fuzzing: 1448500/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:15.73] [status] tests: 0/1, fuzzing: 1491534/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:18.73] [status] tests: 0/1, fuzzing: 1533746/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:21.73] [status] tests: 0/1, fuzzing: 1576947/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:24.73] [status] tests: 0/1, fuzzing: 1619229/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:27.73] [status] tests: 0/1, fuzzing: 1661759/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:30.74] [status] tests: 0/1, fuzzing: 1704303/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:33.74] [status] tests: 0/1, fuzzing: 1747151/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:36.74] [status] tests: 0/1, fuzzing: 1789308/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:39.74] [status] tests: 0/1, fuzzing: 1831876/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:42.74] [status] tests: 0/1, fuzzing: 1873414/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:45.75] [status] tests: 0/1, fuzzing: 1915466/2000000, cov: 147, corpus: 2
-[2023-05-31 18:01:48.75] [status] tests: 0/1, fuzzing: 1957884/2000000, cov: 147, corpus: 2
-Unique instructions: 147
+[2023-06-04 20:57:26.46] Running slither on smart-pulse/0.5.7/Crowdfunding.sol... Done! (0.317162366s)
+Loaded 0 transaction sequences from echidna-test/smart-pulse/seqLen_100_timeout_36000_testLim_2000000/0.5.7/Crowdfunding/random/it_2/reproducers
+Loaded 0 transaction sequences from echidna-test/smart-pulse/seqLen_100_timeout_36000_testLim_2000000/0.5.7/Crowdfunding/random/it_2/coverage
+[2023-06-04 20:57:29.79] [status] tests: 0/1, fuzzing: 42175/2000000, cov: 151, corpus: 3
+[2023-06-04 20:57:32.79] [status] tests: 0/1, fuzzing: 86628/2000000, cov: 320, corpus: 4
+[2023-06-04 20:57:35.79] [status] tests: 0/1, fuzzing: 130506/2000000, cov: 320, corpus: 4
+[2023-06-04 20:57:38.79] [status] tests: 0/1, fuzzing: 175003/2000000, cov: 320, corpus: 4
+[2023-06-04 20:57:41.79] [status] tests: 0/1, fuzzing: 219549/2000000, cov: 320, corpus: 4
+[2023-06-04 20:57:44.79] [status] tests: 0/1, fuzzing: 262499/2000000, cov: 320, corpus: 4
+[2023-06-04 20:57:47.80] [status] tests: 0/1, fuzzing: 306780/2000000, cov: 320, corpus: 4
+[2023-06-04 20:57:50.80] [status] tests: 0/1, fuzzing: 350368/2000000, cov: 320, corpus: 4
+[2023-06-04 20:57:53.80] [status] tests: 0/1, fuzzing: 394006/2000000, cov: 320, corpus: 4
+[2023-06-04 20:57:56.80] [status] tests: 0/1, fuzzing: 438784/2000000, cov: 320, corpus: 4
+[2023-06-04 20:57:59.81] [status] tests: 0/1, fuzzing: 483048/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:02.81] [status] tests: 0/1, fuzzing: 527198/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:05.81] [status] tests: 0/1, fuzzing: 570927/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:08.81] [status] tests: 0/1, fuzzing: 614258/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:11.81] [status] tests: 0/1, fuzzing: 658059/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:14.81] [status] tests: 0/1, fuzzing: 701384/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:17.82] [status] tests: 0/1, fuzzing: 745676/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:20.82] [status] tests: 0/1, fuzzing: 789802/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:23.82] [status] tests: 0/1, fuzzing: 833898/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:26.82] [status] tests: 0/1, fuzzing: 877526/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:29.83] [status] tests: 0/1, fuzzing: 920607/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:32.83] [status] tests: 0/1, fuzzing: 964278/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:35.83] [status] tests: 0/1, fuzzing: 1008856/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:38.83] [status] tests: 0/1, fuzzing: 1053338/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:41.83] [status] tests: 0/1, fuzzing: 1096740/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:44.84] [status] tests: 0/1, fuzzing: 1140917/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:47.84] [status] tests: 0/1, fuzzing: 1184759/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:50.84] [status] tests: 0/1, fuzzing: 1228310/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:53.84] [status] tests: 0/1, fuzzing: 1272298/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:56.85] [status] tests: 0/1, fuzzing: 1317317/2000000, cov: 320, corpus: 4
+[2023-06-04 20:58:59.85] [status] tests: 0/1, fuzzing: 1361817/2000000, cov: 320, corpus: 4
+[2023-06-04 20:59:02.85] [status] tests: 0/1, fuzzing: 1405498/2000000, cov: 320, corpus: 4
+[2023-06-04 20:59:05.85] [status] tests: 0/1, fuzzing: 1450359/2000000, cov: 320, corpus: 4
+[2023-06-04 20:59:08.85] [status] tests: 0/1, fuzzing: 1494468/2000000, cov: 320, corpus: 4
+[2023-06-04 20:59:11.86] [status] tests: 0/1, fuzzing: 1538111/2000000, cov: 320, corpus: 4
+[2023-06-04 20:59:14.86] [status] tests: 0/1, fuzzing: 1582240/2000000, cov: 320, corpus: 4
+[2023-06-04 20:59:17.86] [status] tests: 0/1, fuzzing: 1625162/2000000, cov: 320, corpus: 4
+[2023-06-04 20:59:20.86] [status] tests: 0/1, fuzzing: 1669025/2000000, cov: 320, corpus: 4
+[2023-06-04 20:59:23.87] [status] tests: 0/1, fuzzing: 1710965/2000000, cov: 320, corpus: 4
+[2023-06-04 20:59:26.87] [status] tests: 0/1, fuzzing: 1754324/2000000, cov: 320, corpus: 4
+[2023-06-04 20:59:29.87] [status] tests: 0/1, fuzzing: 1798144/2000000, cov: 320, corpus: 4
+[2023-06-04 20:59:32.87] [status] tests: 0/1, fuzzing: 1841880/2000000, cov: 320, corpus: 4
+[2023-06-04 20:59:35.87] [status] tests: 0/1, fuzzing: 1885283/2000000, cov: 320, corpus: 4
+[2023-06-04 20:59:38.87] [status] tests: 0/1, fuzzing: 1927263/2000000, cov: 320, corpus: 4
+[2023-06-04 20:59:41.88] [status] tests: 0/1, fuzzing: 1971112/2000000, cov: 320, corpus: 4
+Unique instructions: 320
 Unique codehashes: 1
-Corpus size: 2
-Seed: 8860845873738397463
-[2023-05-31 18:01:51.74] Saving test reproducers... Done! (0.000000521s)
-[2023-05-31 18:01:51.74] Saving corpus... Done! (0.071981365s)
+Corpus size: 4
+Seed: 2649819750172440973
+[2023-06-04 20:59:43.89] Saving test reproducers... Done! (0.000000481s)
+[2023-06-04 20:59:43.89] Saving corpus... Done! (0.169917055s)

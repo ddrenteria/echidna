@@ -1,0 +1,80 @@
+/home/zhaeres/Desktop/Tesis/ours/echidna/smart-pulse/0.5.7/RockPaperScissors.sol
+  1 |     | pragma solidity ^0.5.0;
+  2 |     | 
+  3 | *   | contract RockPaperScissors {
+  4 |     |     address payable player1;
+  5 |     |     address payable player2;
+  6 |     |     address payable owner;
+  7 |     | 
+  8 |     |     int p1Choice = -1;
+  9 |     |     int p2Choice = -1;
+ 10 |     |     //mapping(uint => mapping(uint => uint)) payoffMatrix;
+ 11 |     |     uint[3][3] payoffMatrix;
+ 12 |     | 
+ 13 |     |     constructor() public {
+ 14 |     |         player1 = address(0x10000);
+ 15 |     |         player2 = address(0x20000);
+ 16 |     |         owner = address(0x30000);
+ 17 |     | 
+ 18 |     |         //Rock - 0
+ 19 |     |         //Paper - 1
+ 20 |     |         //Scissors - 2
+ 21 |     |         payoffMatrix[0][0] = 0;
+ 22 |     |         payoffMatrix[0][1] = 2;
+ 23 |     |         payoffMatrix[0][2] = 1;
+ 24 |     |         payoffMatrix[1][0] = 1;
+ 25 |     |         payoffMatrix[1][1] = 0;
+ 26 |     |         payoffMatrix[1][2] = 2;
+ 27 |     |         payoffMatrix[2][0] = 2;
+ 28 |     |         payoffMatrix[2][1] = 1;
+ 29 |     |         payoffMatrix[2][2] = 0;
+ 30 |     |     }
+ 31 |     | 
+ 32 | *   |     function choicePlayer1(int choice) public {
+ 33 | *   |         if(msg.sender == player1) {
+ 34 | *   |             if(p1Choice == -1 && choice >= 0 && choice <= 2) {
+ 35 | *   |                 p1Choice = choice;
+ 36 |     |             }
+ 37 |     |             else {
+ 38 | *r  |                 revert();
+ 39 |     |             }
+ 40 |     |         }
+ 41 |     |         else {
+ 42 | *r  |             revert();
+ 43 |     |         }
+ 44 |     |     }
+ 45 |     | 
+ 46 | *   |     function choicePlayer2(int choice) public {
+ 47 | *   |         if(msg.sender == player2) {
+ 48 | *   |             if(p2Choice == -1 && choice >= 0 && choice <= 2) {
+ 49 | *   |                 p2Choice = choice;
+ 50 |     |             }
+ 51 |     |             else {
+ 52 | *r  |                 revert();
+ 53 |     |             }
+ 54 |     |         }
+ 55 |     |         else {
+ 56 | *r  |             revert();
+ 57 |     |         }
+ 58 |     |     }
+ 59 |     | 
+ 60 | *   |     function determineWinner() public {
+ 61 | *   |         if(p1Choice != -1 && p2Choice != -1) {
+ 62 | *   |             uint winner = payoffMatrix[uint(p1Choice)][uint(p2Choice)];
+ 63 | *   |             if(winner == 1) {
+ 64 | *   |                 player1.transfer(address(this).balance);
+ 65 |     |             }
+ 66 | *   |             else if(winner == 2) {
+ 67 | *   |                 player2.transfer(address(this).balance);
+ 68 |     |             }
+ 69 |     |             else {
+ 70 | *   |                 owner.transfer(address(this).balance);
+ 71 |     |             }
+ 72 |     |         }
+ 73 |     |         else {
+ 74 | *r  |             revert();
+ 75 |     |         }
+ 76 |     |     }
+ 77 |     | }
+ 78 |     | 
+

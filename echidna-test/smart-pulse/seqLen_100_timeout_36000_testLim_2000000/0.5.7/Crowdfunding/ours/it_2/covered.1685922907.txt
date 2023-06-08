@@ -1,0 +1,64 @@
+/home/zhaeres/Desktop/Tesis/ours/echidna/smart-pulse/0.5.7/Crowdfunding.sol
+  1 |     | pragma solidity ^0.5.0;
+  2 |     | 
+  3 | *   | contract Crowdfunding {
+  4 |     |     address payable owner;
+  5 |     |     uint max_block;
+  6 |     |     uint goal;
+  7 |     | 
+  8 |     |     mapping(address => uint) backers;
+  9 |     |     bool funded = false;
+ 10 |     | 
+ 11 |     |     constructor() public {
+ 12 |     |         owner = address(0x10000);
+ 13 |     |         max_block = 4600000;
+ 14 |     |         goal = 1000000;
+ 15 |     |     }
+ 16 |     | 
+ 17 | *   |     function Donate() public payable {
+ 18 | *   |         if(max_block <= block.number) {
+ 19 | *r  |             revert();
+ 20 |     |         }
+ 21 |     |         else {
+ 22 | *   |             if(backers[msg.sender] == 0) {
+ 23 | *   |                 backers[msg.sender] = msg.value;
+ 24 |     |             }
+ 25 |     |             else {
+ 26 | *r  |                 revert();
+ 27 |     |             }
+ 28 |     |         }
+ 29 |     |     }
+ 30 |     | 
+ 31 | *   |     function GetFunds() public {
+ 32 | *   |         if(max_block < block.number && msg.sender == owner) {
+ 33 | *   |             if(goal <= address(this).balance) {
+ 34 | *   |                 funded = true;
+ 35 | *   |                 owner.transfer(address(this).balance);
+ 36 |     |             }
+ 37 |     |             else {
+ 38 | *r  |                 revert();
+ 39 |     |             }
+ 40 |     |         }
+ 41 |     |         else {
+ 42 | *r  |             revert();
+ 43 |     |         }
+ 44 |     |     }
+ 45 |     | 
+ 46 | *   |     function Claim() public {
+ 47 | *   |         if(block.number <= max_block) {
+ 48 | *r  |             revert();
+ 49 |     |         }
+ 50 |     |         else {
+ 51 | *   |             if(backers[msg.sender] == 0 || funded || goal <= address(this).balance) {
+ 52 | *r  |                 revert();
+ 53 |     |             }
+ 54 |     |             else {
+ 55 |     |                 uint val = backers[msg.sender];
+ 56 |     |                 backers[msg.sender] = 0;
+ 57 |     |                 msg.sender.transfer(val);
+ 58 |     |             }
+ 59 |     |         }
+ 60 |     |     }
+ 61 |     | }
+ 62 |     | 
+
