@@ -1,0 +1,96 @@
+<style> code { white-space: pre-wrap; display: block; background-color: #eee; }.executed { background-color: #afa; }.reverted { background-color: #ffa; }.unexecuted { background-color: #faa; }.neutral { background-color: #eee; }</style><b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/LowGasSafeMath.sol</b>
+<code>
+  1 |     | <span class='neutral'>// SPDX-License-Identifier: GPL-2.0-or-later</span>
+  2 |     | <span class='neutral'>pragma solidity &gt;=0.7.0;</span>
+  3 |     | <span class='neutral'></span>
+  4 |     | <span class='neutral'>/// @title Optimized overflow and underflow safe math operations</span>
+  5 |     | <span class='neutral'>/// @notice Contains methods for doing math operations that revert on overflow or underflow for minimal gas cost</span>
+  6 |     | <span class='unexecuted'>library LowGasSafeMath {</span>
+  7 |     | <span class='neutral'>    /// @notice Returns x + y, reverts if sum overflows uint256</span>
+  8 |     | <span class='neutral'>    /// @param x The augend</span>
+  9 |     | <span class='neutral'>    /// @param y The addend</span>
+ 10 |     | <span class='neutral'>    /// @return z The sum of x and y</span>
+ 11 | *   | <span class='executed'>    function add(uint256 x, uint256 y) internal pure returns (uint256 z) {</span>
+ 12 | *   | <span class='executed'>        require((z = x + y) &gt;= x);</span>
+ 13 |     | <span class='neutral'>    }</span>
+ 14 |     | <span class='neutral'></span>
+ 15 |     | <span class='neutral'>    /// @notice Returns x - y, reverts if underflows</span>
+ 16 |     | <span class='neutral'>    /// @param x The minuend</span>
+ 17 |     | <span class='neutral'>    /// @param y The subtrahend</span>
+ 18 |     | <span class='neutral'>    /// @return z The difference of x and y</span>
+ 19 | *   | <span class='executed'>    function sub(uint256 x, uint256 y) internal pure returns (uint256 z) {</span>
+ 20 | *   | <span class='executed'>        require((z = x - y) &lt;= x);</span>
+ 21 |     | <span class='neutral'>    }</span>
+ 22 |     | <span class='neutral'></span>
+ 23 |     | <span class='neutral'>    /// @notice Returns x * y, reverts if overflows</span>
+ 24 |     | <span class='neutral'>    /// @param x The multiplicand</span>
+ 25 |     | <span class='neutral'>    /// @param y The multiplier</span>
+ 26 |     | <span class='neutral'>    /// @return z The product of x and y</span>
+ 27 | *   | <span class='executed'>    function mul(uint256 x, uint256 y) internal pure returns (uint256 z) {</span>
+ 28 | *   | <span class='executed'>        require(x == 0 || (z = x * y) / x == y);</span>
+ 29 |     | <span class='neutral'>    }</span>
+ 30 |     | <span class='neutral'></span>
+ 31 |     | <span class='neutral'>    /// @notice Returns x + y, reverts if overflows or underflows</span>
+ 32 |     | <span class='neutral'>    /// @param x The augend</span>
+ 33 |     | <span class='neutral'>    /// @param y The addend</span>
+ 34 |     | <span class='neutral'>    /// @return z The sum of x and y</span>
+ 35 | *   | <span class='executed'>    function add(int256 x, int256 y) internal pure returns (int256 z) {</span>
+ 36 | *   | <span class='executed'>        require((z = x + y) &gt;= x == (y &gt;= 0));</span>
+ 37 |     | <span class='neutral'>    }</span>
+ 38 |     | <span class='neutral'></span>
+ 39 |     | <span class='neutral'>    /// @notice Returns x - y, reverts if overflows or underflows</span>
+ 40 |     | <span class='neutral'>    /// @param x The minuend</span>
+ 41 |     | <span class='neutral'>    /// @param y The subtrahend</span>
+ 42 |     | <span class='neutral'>    /// @return z The difference of x and y</span>
+ 43 | *   | <span class='executed'>    function sub(int256 x, int256 y) internal pure returns (int256 z) {</span>
+ 44 | *   | <span class='executed'>        require((z = x - y) &lt;= x == (y &gt;= 0));</span>
+ 45 |     | <span class='neutral'>    }</span>
+ 46 |     | <span class='neutral'>}</span>
+ 47 |     | <span class='neutral'></span>
+
+</code>
+<br />
+
+<b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/test/LowGasSafeMathEchidnaTest.sol</b>
+<code>
+  1 |     | <span class='neutral'>// SPDX-License-Identifier: UNLICENSED</span>
+  2 |     | <span class='neutral'>pragma solidity =0.7.6;</span>
+  3 |     | <span class='neutral'></span>
+  4 |     | <span class='neutral'>import &#39;../libraries/LowGasSafeMath.sol&#39;;</span>
+  5 |     | <span class='neutral'></span>
+  6 | *   | <span class='executed'>contract LowGasSafeMathEchidnaTest {</span>
+  7 | *   | <span class='executed'>    function checkAdd(uint256 x, uint256 y) external pure {</span>
+  8 | *   | <span class='executed'>        uint256 z = LowGasSafeMath.add(x, y);</span>
+  9 | *   | <span class='executed'>        assert(z == x + y);</span>
+ 10 | *   | <span class='executed'>        assert(z &gt;= x &amp;&amp; z &gt;= y);</span>
+ 11 |     | <span class='neutral'>    }</span>
+ 12 |     | <span class='neutral'></span>
+ 13 | *   | <span class='executed'>    function checkSub(uint256 x, uint256 y) external pure {</span>
+ 14 | *   | <span class='executed'>        uint256 z = LowGasSafeMath.sub(x, y);</span>
+ 15 | *   | <span class='executed'>        assert(z == x - y);</span>
+ 16 | *   | <span class='executed'>        assert(z &lt;= x);</span>
+ 17 |     | <span class='neutral'>    }</span>
+ 18 |     | <span class='neutral'></span>
+ 19 | *   | <span class='executed'>    function checkMul(uint256 x, uint256 y) external pure {</span>
+ 20 | *   | <span class='executed'>        uint256 z = LowGasSafeMath.mul(x, y);</span>
+ 21 | *   | <span class='executed'>        assert(z == x * y);</span>
+ 22 | *   | <span class='executed'>        assert(x == 0 || y == 0 || (z &gt;= x &amp;&amp; z &gt;= y));</span>
+ 23 |     | <span class='neutral'>    }</span>
+ 24 |     | <span class='neutral'></span>
+ 25 | *   | <span class='executed'>    function checkAddi(int256 x, int256 y) external pure {</span>
+ 26 | *   | <span class='executed'>        int256 z = LowGasSafeMath.add(x, y);</span>
+ 27 | *   | <span class='executed'>        assert(z == x + y);</span>
+ 28 | *   | <span class='executed'>        assert(y &lt; 0 ? z &lt; x : z &gt;= x);</span>
+ 29 |     | <span class='neutral'>    }</span>
+ 30 |     | <span class='neutral'></span>
+ 31 | *   | <span class='executed'>    function checkSubi(int256 x, int256 y) external pure {</span>
+ 32 | *   | <span class='executed'>        int256 z = LowGasSafeMath.sub(x, y);</span>
+ 33 | *   | <span class='executed'>        assert(z == x - y);</span>
+ 34 | *   | <span class='executed'>        assert(y &lt; 0 ? z &gt; x : z &lt;= x);</span>
+ 35 |     | <span class='neutral'>    }</span>
+ 36 |     | <span class='neutral'>}</span>
+ 37 |     | <span class='neutral'></span>
+
+</code>
+<br />
+

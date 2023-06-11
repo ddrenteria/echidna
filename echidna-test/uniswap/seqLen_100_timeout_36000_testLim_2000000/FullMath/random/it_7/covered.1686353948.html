@@ -1,0 +1,205 @@
+<style> code { white-space: pre-wrap; display: block; background-color: #eee; }.executed { background-color: #afa; }.reverted { background-color: #ffa; }.unexecuted { background-color: #faa; }.neutral { background-color: #eee; }</style><b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/FullMath.sol</b>
+<code>
+   1 |     | <span class='neutral'>// SPDX-License-Identifier: MIT</span>
+   2 |     | <span class='neutral'>pragma solidity &gt;=0.4.0 &lt;0.8.0;</span>
+   3 |     | <span class='neutral'></span>
+   4 |     | <span class='neutral'>/// @title Contains 512-bit math functions</span>
+   5 |     | <span class='neutral'>/// @notice Facilitates multiplication and division that can have overflow of an intermediate value without any loss of precision</span>
+   6 |     | <span class='neutral'>/// @dev Handles &quot;phantom overflow&quot; i.e., allows multiplication and division where an intermediate value overflows 256 bits</span>
+   7 |     | <span class='unexecuted'>library FullMath {</span>
+   8 |     | <span class='neutral'>    /// @notice Calculates floor(a×b÷denominator) with full precision. Throws if result overflows a uint256 or denominator == 0</span>
+   9 |     | <span class='neutral'>    /// @param a The multiplicand</span>
+  10 |     | <span class='neutral'>    /// @param b The multiplier</span>
+  11 |     | <span class='neutral'>    /// @param denominator The divisor</span>
+  12 |     | <span class='neutral'>    /// @return result The 256-bit result</span>
+  13 |     | <span class='neutral'>    /// @dev Credit to Remco Bloemen under MIT license https://xn--2-umb.com/21/muldiv</span>
+  14 | *   | <span class='executed'>    function mulDiv(</span>
+  15 |     | <span class='neutral'>        uint256 a,</span>
+  16 |     | <span class='neutral'>        uint256 b,</span>
+  17 |     | <span class='neutral'>        uint256 denominator</span>
+  18 | *   | <span class='executed'>    ) internal pure returns (uint256 result) {</span>
+  19 |     | <span class='neutral'>        // 512-bit multiply [prod1 prod0] = a * b</span>
+  20 |     | <span class='neutral'>        // Compute the product mod 2**256 and mod 2**256 - 1</span>
+  21 |     | <span class='neutral'>        // then use the Chinese Remainder Theorem to reconstruct</span>
+  22 |     | <span class='neutral'>        // the 512 bit result. The result is stored in two 256</span>
+  23 |     | <span class='neutral'>        // variables such that product = prod1 * 2**256 + prod0</span>
+  24 | *   | <span class='executed'>        uint256 prod0; // Least significant 256 bits of the product</span>
+  25 | *   | <span class='executed'>        uint256 prod1; // Most significant 256 bits of the product</span>
+  26 | *   | <span class='executed'>        assembly {</span>
+  27 | *   | <span class='executed'>            let mm := mulmod(a, b, not(0))</span>
+  28 | *   | <span class='executed'>            prod0 := mul(a, b)</span>
+  29 | *   | <span class='executed'>            prod1 := sub(sub(mm, prod0), lt(mm, prod0))</span>
+  30 |     | <span class='neutral'>        }</span>
+  31 |     | <span class='neutral'></span>
+  32 |     | <span class='neutral'>        // Handle non-overflow cases, 256 by 256 division</span>
+  33 | *   | <span class='executed'>        if (prod1 == 0) {</span>
+  34 | *   | <span class='executed'>            require(denominator &gt; 0);</span>
+  35 |     | <span class='neutral'>            assembly {</span>
+  36 | *   | <span class='executed'>                result := div(prod0, denominator)</span>
+  37 |     | <span class='neutral'>            }</span>
+  38 | *   | <span class='executed'>            return result;</span>
+  39 |     | <span class='neutral'>        }</span>
+  40 |     | <span class='neutral'></span>
+  41 |     | <span class='neutral'>        // Make sure the result is less than 2**256.</span>
+  42 |     | <span class='neutral'>        // Also prevents denominator == 0</span>
+  43 | *   | <span class='executed'>        require(denominator &gt; prod1);</span>
+  44 |     | <span class='neutral'></span>
+  45 |     | <span class='neutral'>        ///////////////////////////////////////////////</span>
+  46 |     | <span class='neutral'>        // 512 by 256 division.</span>
+  47 |     | <span class='neutral'>        ///////////////////////////////////////////////</span>
+  48 |     | <span class='neutral'></span>
+  49 |     | <span class='neutral'>        // Make division exact by subtracting the remainder from [prod1 prod0]</span>
+  50 |     | <span class='neutral'>        // Compute remainder using mulmod</span>
+  51 | *   | <span class='executed'>        uint256 remainder;</span>
+  52 |     | <span class='neutral'>        assembly {</span>
+  53 | *   | <span class='executed'>            remainder := mulmod(a, b, denominator)</span>
+  54 |     | <span class='neutral'>        }</span>
+  55 |     | <span class='neutral'>        // Subtract 256 bit number from 512 bit number</span>
+  56 |     | <span class='neutral'>        assembly {</span>
+  57 | *   | <span class='executed'>            prod1 := sub(prod1, gt(remainder, prod0))</span>
+  58 | *   | <span class='executed'>            prod0 := sub(prod0, remainder)</span>
+  59 |     | <span class='neutral'>        }</span>
+  60 |     | <span class='neutral'></span>
+  61 |     | <span class='neutral'>        // Factor powers of two out of denominator</span>
+  62 |     | <span class='neutral'>        // Compute largest power of two divisor of denominator.</span>
+  63 |     | <span class='neutral'>        // Always &gt;= 1.</span>
+  64 | *   | <span class='executed'>        uint256 twos = -denominator &amp; denominator;</span>
+  65 |     | <span class='neutral'>        // Divide denominator by power of two</span>
+  66 |     | <span class='neutral'>        assembly {</span>
+  67 | *   | <span class='executed'>            denominator := div(denominator, twos)</span>
+  68 |     | <span class='neutral'>        }</span>
+  69 |     | <span class='neutral'></span>
+  70 |     | <span class='neutral'>        // Divide [prod1 prod0] by the factors of two</span>
+  71 |     | <span class='neutral'>        assembly {</span>
+  72 | *   | <span class='executed'>            prod0 := div(prod0, twos)</span>
+  73 |     | <span class='neutral'>        }</span>
+  74 |     | <span class='neutral'>        // Shift in bits from prod1 into prod0. For this we need</span>
+  75 |     | <span class='neutral'>        // to flip `twos` such that it is 2**256 / twos.</span>
+  76 |     | <span class='neutral'>        // If twos is zero, then it becomes one</span>
+  77 |     | <span class='neutral'>        assembly {</span>
+  78 | *   | <span class='executed'>            twos := add(div(sub(0, twos), twos), 1)</span>
+  79 |     | <span class='neutral'>        }</span>
+  80 | *   | <span class='executed'>        prod0 |= prod1 * twos;</span>
+  81 |     | <span class='neutral'></span>
+  82 |     | <span class='neutral'>        // Invert denominator mod 2**256</span>
+  83 |     | <span class='neutral'>        // Now that denominator is an odd number, it has an inverse</span>
+  84 |     | <span class='neutral'>        // modulo 2**256 such that denominator * inv = 1 mod 2**256.</span>
+  85 |     | <span class='neutral'>        // Compute the inverse by starting with a seed that is correct</span>
+  86 |     | <span class='neutral'>        // correct for four bits. That is, denominator * inv = 1 mod 2**4</span>
+  87 | *   | <span class='executed'>        uint256 inv = (3 * denominator) ^ 2;</span>
+  88 |     | <span class='neutral'>        // Now use Newton-Raphson iteration to improve the precision.</span>
+  89 |     | <span class='neutral'>        // Thanks to Hensel&#39;s lifting lemma, this also works in modular</span>
+  90 |     | <span class='neutral'>        // arithmetic, doubling the correct bits in each step.</span>
+  91 | *   | <span class='executed'>        inv *= 2 - denominator * inv; // inverse mod 2**8</span>
+  92 | *   | <span class='executed'>        inv *= 2 - denominator * inv; // inverse mod 2**16</span>
+  93 | *   | <span class='executed'>        inv *= 2 - denominator * inv; // inverse mod 2**32</span>
+  94 | *   | <span class='executed'>        inv *= 2 - denominator * inv; // inverse mod 2**64</span>
+  95 | *   | <span class='executed'>        inv *= 2 - denominator * inv; // inverse mod 2**128</span>
+  96 | *   | <span class='executed'>        inv *= 2 - denominator * inv; // inverse mod 2**256</span>
+  97 |     | <span class='neutral'></span>
+  98 |     | <span class='neutral'>        // Because the division is now exact we can divide by multiplying</span>
+  99 |     | <span class='neutral'>        // with the modular inverse of denominator. This will give us the</span>
+ 100 |     | <span class='neutral'>        // correct result modulo 2**256. Since the precoditions guarantee</span>
+ 101 |     | <span class='neutral'>        // that the outcome is less than 2**256, this is the final result.</span>
+ 102 |     | <span class='neutral'>        // We don&#39;t need to compute the high bits of the result and prod1</span>
+ 103 |     | <span class='neutral'>        // is no longer required.</span>
+ 104 | *   | <span class='executed'>        result = prod0 * inv;</span>
+ 105 | *   | <span class='executed'>        return result;</span>
+ 106 |     | <span class='neutral'>    }</span>
+ 107 |     | <span class='neutral'></span>
+ 108 |     | <span class='neutral'>    /// @notice Calculates ceil(a×b÷denominator) with full precision. Throws if result overflows a uint256 or denominator == 0</span>
+ 109 |     | <span class='neutral'>    /// @param a The multiplicand</span>
+ 110 |     | <span class='neutral'>    /// @param b The multiplier</span>
+ 111 |     | <span class='neutral'>    /// @param denominator The divisor</span>
+ 112 |     | <span class='neutral'>    /// @return result The 256-bit result</span>
+ 113 | *   | <span class='executed'>    function mulDivRoundingUp(</span>
+ 114 |     | <span class='neutral'>        uint256 a,</span>
+ 115 |     | <span class='neutral'>        uint256 b,</span>
+ 116 |     | <span class='neutral'>        uint256 denominator</span>
+ 117 | *   | <span class='executed'>    ) internal pure returns (uint256 result) {</span>
+ 118 | *   | <span class='executed'>        result = mulDiv(a, b, denominator);</span>
+ 119 | *   | <span class='executed'>        if (mulmod(a, b, denominator) &gt; 0) {</span>
+ 120 | *   | <span class='executed'>            require(result &lt; type(uint256).max);</span>
+ 121 | *   | <span class='executed'>            result++;</span>
+ 122 |     | <span class='neutral'>        }</span>
+ 123 |     | <span class='neutral'>    }</span>
+ 124 |     | <span class='neutral'>}</span>
+ 125 |     | <span class='neutral'></span>
+
+</code>
+<br />
+
+<b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/test/FullMathEchidnaTest.sol</b>
+<code>
+  1 |     | <span class='neutral'>// SPDX-License-Identifier: UNLICENSED</span>
+  2 |     | <span class='neutral'>pragma solidity =0.7.6;</span>
+  3 |     | <span class='neutral'></span>
+  4 |     | <span class='neutral'>import &#39;../libraries/FullMath.sol&#39;;</span>
+  5 |     | <span class='neutral'></span>
+  6 | *   | <span class='executed'>contract FullMathEchidnaTest {</span>
+  7 | *   | <span class='executed'>    function checkMulDivRounding(</span>
+  8 |     | <span class='neutral'>        uint256 x,</span>
+  9 |     | <span class='neutral'>        uint256 y,</span>
+ 10 |     | <span class='neutral'>        uint256 d</span>
+ 11 |     | <span class='neutral'>    ) external pure {</span>
+ 12 | *   | <span class='executed'>        require(d &gt; 0);</span>
+ 13 |     | <span class='neutral'></span>
+ 14 | *   | <span class='executed'>        uint256 ceiled = FullMath.mulDivRoundingUp(x, y, d);</span>
+ 15 | *   | <span class='executed'>        uint256 floored = FullMath.mulDiv(x, y, d);</span>
+ 16 |     | <span class='neutral'></span>
+ 17 | *   | <span class='executed'>        if (mulmod(x, y, d) &gt; 0) {</span>
+ 18 | *   | <span class='executed'>            assert(ceiled - floored == 1);</span>
+ 19 |     | <span class='neutral'>        } else {</span>
+ 20 | *   | <span class='executed'>            assert(ceiled == floored);</span>
+ 21 |     | <span class='neutral'>        }</span>
+ 22 |     | <span class='neutral'>    }</span>
+ 23 |     | <span class='neutral'></span>
+ 24 | *   | <span class='executed'>    function checkMulDiv(</span>
+ 25 |     | <span class='neutral'>        uint256 x,</span>
+ 26 |     | <span class='neutral'>        uint256 y,</span>
+ 27 |     | <span class='neutral'>        uint256 d</span>
+ 28 |     | <span class='neutral'>    ) external pure {</span>
+ 29 | *   | <span class='executed'>        require(d &gt; 0);</span>
+ 30 | *   | <span class='executed'>        uint256 z = FullMath.mulDiv(x, y, d);</span>
+ 31 | *   | <span class='executed'>        if (x == 0 || y == 0) {</span>
+ 32 | *   | <span class='executed'>            assert(z == 0);</span>
+ 33 | *   | <span class='executed'>            return;</span>
+ 34 |     | <span class='neutral'>        }</span>
+ 35 |     | <span class='neutral'></span>
+ 36 |     | <span class='neutral'>        // recompute x and y via mulDiv of the result of floor(x*y/d), should always be less than original inputs by &lt; d</span>
+ 37 | *   | <span class='executed'>        uint256 x2 = FullMath.mulDiv(z, d, y);</span>
+ 38 | *   | <span class='executed'>        uint256 y2 = FullMath.mulDiv(z, d, x);</span>
+ 39 | *   | <span class='executed'>        assert(x2 &lt;= x);</span>
+ 40 | *   | <span class='executed'>        assert(y2 &lt;= y);</span>
+ 41 |     | <span class='neutral'></span>
+ 42 | *   | <span class='executed'>        assert(x - x2 &lt; d);</span>
+ 43 | *   | <span class='executed'>        assert(y - y2 &lt; d);</span>
+ 44 |     | <span class='neutral'>    }</span>
+ 45 |     | <span class='neutral'></span>
+ 46 | *   | <span class='executed'>    function checkMulDivRoundingUp(</span>
+ 47 |     | <span class='neutral'>        uint256 x,</span>
+ 48 |     | <span class='neutral'>        uint256 y,</span>
+ 49 |     | <span class='neutral'>        uint256 d</span>
+ 50 |     | <span class='neutral'>    ) external pure {</span>
+ 51 | *   | <span class='executed'>        require(d &gt; 0);</span>
+ 52 | *   | <span class='executed'>        uint256 z = FullMath.mulDivRoundingUp(x, y, d);</span>
+ 53 | *   | <span class='executed'>        if (x == 0 || y == 0) {</span>
+ 54 | *   | <span class='executed'>            assert(z == 0);</span>
+ 55 | *   | <span class='executed'>            return;</span>
+ 56 |     | <span class='neutral'>        }</span>
+ 57 |     | <span class='neutral'></span>
+ 58 |     | <span class='neutral'>        // recompute x and y via mulDiv of the result of floor(x*y/d), should always be less than original inputs by &lt; d</span>
+ 59 | *   | <span class='executed'>        uint256 x2 = FullMath.mulDiv(z, d, y);</span>
+ 60 | *   | <span class='executed'>        uint256 y2 = FullMath.mulDiv(z, d, x);</span>
+ 61 | *   | <span class='executed'>        assert(x2 &gt;= x);</span>
+ 62 | *   | <span class='executed'>        assert(y2 &gt;= y);</span>
+ 63 |     | <span class='neutral'></span>
+ 64 | *   | <span class='executed'>        assert(x2 - x &lt; d);</span>
+ 65 | *   | <span class='executed'>        assert(y2 - y &lt; d);</span>
+ 66 |     | <span class='neutral'>    }</span>
+ 67 |     | <span class='neutral'>}</span>
+ 68 |     | <span class='neutral'></span>
+
+</code>
+<br />
+

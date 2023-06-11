@@ -1,0 +1,197 @@
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/FullMath.sol
+   1 |     | // SPDX-License-Identifier: MIT
+   2 |     | pragma solidity >=0.4.0 <0.8.0;
+   3 |     | 
+   4 |     | /// @title Contains 512-bit math functions
+   5 |     | /// @notice Facilitates multiplication and division that can have overflow of an intermediate value without any loss of precision
+   6 |     | /// @dev Handles "phantom overflow" i.e., allows multiplication and division where an intermediate value overflows 256 bits
+   7 |     | library FullMath {
+   8 |     |     /// @notice Calculates floor(a×b÷denominator) with full precision. Throws if result overflows a uint256 or denominator == 0
+   9 |     |     /// @param a The multiplicand
+  10 |     |     /// @param b The multiplier
+  11 |     |     /// @param denominator The divisor
+  12 |     |     /// @return result The 256-bit result
+  13 |     |     /// @dev Credit to Remco Bloemen under MIT license https://xn--2-umb.com/21/muldiv
+  14 | *   |     function mulDiv(
+  15 |     |         uint256 a,
+  16 |     |         uint256 b,
+  17 |     |         uint256 denominator
+  18 | *   |     ) internal pure returns (uint256 result) {
+  19 |     |         // 512-bit multiply [prod1 prod0] = a * b
+  20 |     |         // Compute the product mod 2**256 and mod 2**256 - 1
+  21 |     |         // then use the Chinese Remainder Theorem to reconstruct
+  22 |     |         // the 512 bit result. The result is stored in two 256
+  23 |     |         // variables such that product = prod1 * 2**256 + prod0
+  24 | *   |         uint256 prod0; // Least significant 256 bits of the product
+  25 | *   |         uint256 prod1; // Most significant 256 bits of the product
+  26 | *   |         assembly {
+  27 | *   |             let mm := mulmod(a, b, not(0))
+  28 | *   |             prod0 := mul(a, b)
+  29 | *   |             prod1 := sub(sub(mm, prod0), lt(mm, prod0))
+  30 |     |         }
+  31 |     | 
+  32 |     |         // Handle non-overflow cases, 256 by 256 division
+  33 | *   |         if (prod1 == 0) {
+  34 | *   |             require(denominator > 0);
+  35 |     |             assembly {
+  36 | *   |                 result := div(prod0, denominator)
+  37 |     |             }
+  38 | *   |             return result;
+  39 |     |         }
+  40 |     | 
+  41 |     |         // Make sure the result is less than 2**256.
+  42 |     |         // Also prevents denominator == 0
+  43 | *   |         require(denominator > prod1);
+  44 |     | 
+  45 |     |         ///////////////////////////////////////////////
+  46 |     |         // 512 by 256 division.
+  47 |     |         ///////////////////////////////////////////////
+  48 |     | 
+  49 |     |         // Make division exact by subtracting the remainder from [prod1 prod0]
+  50 |     |         // Compute remainder using mulmod
+  51 | *   |         uint256 remainder;
+  52 |     |         assembly {
+  53 | *   |             remainder := mulmod(a, b, denominator)
+  54 |     |         }
+  55 |     |         // Subtract 256 bit number from 512 bit number
+  56 |     |         assembly {
+  57 | *   |             prod1 := sub(prod1, gt(remainder, prod0))
+  58 | *   |             prod0 := sub(prod0, remainder)
+  59 |     |         }
+  60 |     | 
+  61 |     |         // Factor powers of two out of denominator
+  62 |     |         // Compute largest power of two divisor of denominator.
+  63 |     |         // Always >= 1.
+  64 | *   |         uint256 twos = -denominator & denominator;
+  65 |     |         // Divide denominator by power of two
+  66 |     |         assembly {
+  67 | *   |             denominator := div(denominator, twos)
+  68 |     |         }
+  69 |     | 
+  70 |     |         // Divide [prod1 prod0] by the factors of two
+  71 |     |         assembly {
+  72 | *   |             prod0 := div(prod0, twos)
+  73 |     |         }
+  74 |     |         // Shift in bits from prod1 into prod0. For this we need
+  75 |     |         // to flip `twos` such that it is 2**256 / twos.
+  76 |     |         // If twos is zero, then it becomes one
+  77 |     |         assembly {
+  78 | *   |             twos := add(div(sub(0, twos), twos), 1)
+  79 |     |         }
+  80 | *   |         prod0 |= prod1 * twos;
+  81 |     | 
+  82 |     |         // Invert denominator mod 2**256
+  83 |     |         // Now that denominator is an odd number, it has an inverse
+  84 |     |         // modulo 2**256 such that denominator * inv = 1 mod 2**256.
+  85 |     |         // Compute the inverse by starting with a seed that is correct
+  86 |     |         // correct for four bits. That is, denominator * inv = 1 mod 2**4
+  87 | *   |         uint256 inv = (3 * denominator) ^ 2;
+  88 |     |         // Now use Newton-Raphson iteration to improve the precision.
+  89 |     |         // Thanks to Hensel's lifting lemma, this also works in modular
+  90 |     |         // arithmetic, doubling the correct bits in each step.
+  91 | *   |         inv *= 2 - denominator * inv; // inverse mod 2**8
+  92 | *   |         inv *= 2 - denominator * inv; // inverse mod 2**16
+  93 | *   |         inv *= 2 - denominator * inv; // inverse mod 2**32
+  94 | *   |         inv *= 2 - denominator * inv; // inverse mod 2**64
+  95 | *   |         inv *= 2 - denominator * inv; // inverse mod 2**128
+  96 | *   |         inv *= 2 - denominator * inv; // inverse mod 2**256
+  97 |     | 
+  98 |     |         // Because the division is now exact we can divide by multiplying
+  99 |     |         // with the modular inverse of denominator. This will give us the
+ 100 |     |         // correct result modulo 2**256. Since the precoditions guarantee
+ 101 |     |         // that the outcome is less than 2**256, this is the final result.
+ 102 |     |         // We don't need to compute the high bits of the result and prod1
+ 103 |     |         // is no longer required.
+ 104 | *   |         result = prod0 * inv;
+ 105 | *   |         return result;
+ 106 |     |     }
+ 107 |     | 
+ 108 |     |     /// @notice Calculates ceil(a×b÷denominator) with full precision. Throws if result overflows a uint256 or denominator == 0
+ 109 |     |     /// @param a The multiplicand
+ 110 |     |     /// @param b The multiplier
+ 111 |     |     /// @param denominator The divisor
+ 112 |     |     /// @return result The 256-bit result
+ 113 | *   |     function mulDivRoundingUp(
+ 114 |     |         uint256 a,
+ 115 |     |         uint256 b,
+ 116 |     |         uint256 denominator
+ 117 | *   |     ) internal pure returns (uint256 result) {
+ 118 | *   |         result = mulDiv(a, b, denominator);
+ 119 | *   |         if (mulmod(a, b, denominator) > 0) {
+ 120 | *   |             require(result < type(uint256).max);
+ 121 | *   |             result++;
+ 122 |     |         }
+ 123 |     |     }
+ 124 |     | }
+ 125 |     | 
+
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/test/FullMathEchidnaTest.sol
+  1 |     | // SPDX-License-Identifier: UNLICENSED
+  2 |     | pragma solidity =0.7.6;
+  3 |     | 
+  4 |     | import '../libraries/FullMath.sol';
+  5 |     | 
+  6 | *   | contract FullMathEchidnaTest {
+  7 | *   |     function checkMulDivRounding(
+  8 |     |         uint256 x,
+  9 |     |         uint256 y,
+ 10 |     |         uint256 d
+ 11 |     |     ) external pure {
+ 12 | *   |         require(d > 0);
+ 13 |     | 
+ 14 | *   |         uint256 ceiled = FullMath.mulDivRoundingUp(x, y, d);
+ 15 | *   |         uint256 floored = FullMath.mulDiv(x, y, d);
+ 16 |     | 
+ 17 | *   |         if (mulmod(x, y, d) > 0) {
+ 18 | *   |             assert(ceiled - floored == 1);
+ 19 |     |         } else {
+ 20 | *   |             assert(ceiled == floored);
+ 21 |     |         }
+ 22 |     |     }
+ 23 |     | 
+ 24 | *   |     function checkMulDiv(
+ 25 |     |         uint256 x,
+ 26 |     |         uint256 y,
+ 27 |     |         uint256 d
+ 28 |     |     ) external pure {
+ 29 | *   |         require(d > 0);
+ 30 | *   |         uint256 z = FullMath.mulDiv(x, y, d);
+ 31 | *   |         if (x == 0 || y == 0) {
+ 32 | *   |             assert(z == 0);
+ 33 | *   |             return;
+ 34 |     |         }
+ 35 |     | 
+ 36 |     |         // recompute x and y via mulDiv of the result of floor(x*y/d), should always be less than original inputs by < d
+ 37 | *   |         uint256 x2 = FullMath.mulDiv(z, d, y);
+ 38 | *   |         uint256 y2 = FullMath.mulDiv(z, d, x);
+ 39 | *   |         assert(x2 <= x);
+ 40 | *   |         assert(y2 <= y);
+ 41 |     | 
+ 42 | *   |         assert(x - x2 < d);
+ 43 | *   |         assert(y - y2 < d);
+ 44 |     |     }
+ 45 |     | 
+ 46 | *   |     function checkMulDivRoundingUp(
+ 47 |     |         uint256 x,
+ 48 |     |         uint256 y,
+ 49 |     |         uint256 d
+ 50 |     |     ) external pure {
+ 51 | *   |         require(d > 0);
+ 52 | *   |         uint256 z = FullMath.mulDivRoundingUp(x, y, d);
+ 53 | *   |         if (x == 0 || y == 0) {
+ 54 | *   |             assert(z == 0);
+ 55 | *   |             return;
+ 56 |     |         }
+ 57 |     | 
+ 58 |     |         // recompute x and y via mulDiv of the result of floor(x*y/d), should always be less than original inputs by < d
+ 59 | *   |         uint256 x2 = FullMath.mulDiv(z, d, y);
+ 60 | *   |         uint256 y2 = FullMath.mulDiv(z, d, x);
+ 61 | *   |         assert(x2 >= x);
+ 62 | *   |         assert(y2 >= y);
+ 63 |     | 
+ 64 | *   |         assert(x2 - x < d);
+ 65 | *   |         assert(y2 - y < d);
+ 66 |     |     }
+ 67 |     | }
+ 68 |     | 
+

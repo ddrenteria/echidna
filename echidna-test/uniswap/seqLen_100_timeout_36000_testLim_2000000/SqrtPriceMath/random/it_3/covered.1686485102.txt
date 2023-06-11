@@ -1,0 +1,705 @@
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/FixedPoint96.sol
+  1 |     | // SPDX-License-Identifier: GPL-2.0-or-later
+  2 |     | pragma solidity >=0.4.0;
+  3 |     | 
+  4 |     | /// @title FixedPoint96
+  5 |     | /// @notice A library for handling binary fixed point numbers, see https://en.wikipedia.org/wiki/Q_(number_format)
+  6 |     | /// @dev Used in SqrtPriceMath.sol
+  7 |     | library FixedPoint96 {
+  8 | *   |     uint8 internal constant RESOLUTION = 96;
+  9 | *   |     uint256 internal constant Q96 = 0x1000000000000000000000000;
+ 10 |     | }
+ 11 |     | 
+
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/FullMath.sol
+   1 |     | // SPDX-License-Identifier: MIT
+   2 |     | pragma solidity >=0.4.0 <0.8.0;
+   3 |     | 
+   4 |     | /// @title Contains 512-bit math functions
+   5 |     | /// @notice Facilitates multiplication and division that can have overflow of an intermediate value without any loss of precision
+   6 |     | /// @dev Handles "phantom overflow" i.e., allows multiplication and division where an intermediate value overflows 256 bits
+   7 |     | library FullMath {
+   8 |     |     /// @notice Calculates floor(a×b÷denominator) with full precision. Throws if result overflows a uint256 or denominator == 0
+   9 |     |     /// @param a The multiplicand
+  10 |     |     /// @param b The multiplier
+  11 |     |     /// @param denominator The divisor
+  12 |     |     /// @return result The 256-bit result
+  13 |     |     /// @dev Credit to Remco Bloemen under MIT license https://xn--2-umb.com/21/muldiv
+  14 | *   |     function mulDiv(
+  15 |     |         uint256 a,
+  16 |     |         uint256 b,
+  17 |     |         uint256 denominator
+  18 | *   |     ) internal pure returns (uint256 result) {
+  19 |     |         // 512-bit multiply [prod1 prod0] = a * b
+  20 |     |         // Compute the product mod 2**256 and mod 2**256 - 1
+  21 |     |         // then use the Chinese Remainder Theorem to reconstruct
+  22 |     |         // the 512 bit result. The result is stored in two 256
+  23 |     |         // variables such that product = prod1 * 2**256 + prod0
+  24 | *   |         uint256 prod0; // Least significant 256 bits of the product
+  25 | *   |         uint256 prod1; // Most significant 256 bits of the product
+  26 | *   |         assembly {
+  27 | *   |             let mm := mulmod(a, b, not(0))
+  28 | *   |             prod0 := mul(a, b)
+  29 | *   |             prod1 := sub(sub(mm, prod0), lt(mm, prod0))
+  30 |     |         }
+  31 |     | 
+  32 |     |         // Handle non-overflow cases, 256 by 256 division
+  33 | *   |         if (prod1 == 0) {
+  34 | *   |             require(denominator > 0);
+  35 |     |             assembly {
+  36 | *   |                 result := div(prod0, denominator)
+  37 |     |             }
+  38 | *   |             return result;
+  39 |     |         }
+  40 |     | 
+  41 |     |         // Make sure the result is less than 2**256.
+  42 |     |         // Also prevents denominator == 0
+  43 | *   |         require(denominator > prod1);
+  44 |     | 
+  45 |     |         ///////////////////////////////////////////////
+  46 |     |         // 512 by 256 division.
+  47 |     |         ///////////////////////////////////////////////
+  48 |     | 
+  49 |     |         // Make division exact by subtracting the remainder from [prod1 prod0]
+  50 |     |         // Compute remainder using mulmod
+  51 | *   |         uint256 remainder;
+  52 |     |         assembly {
+  53 | *   |             remainder := mulmod(a, b, denominator)
+  54 |     |         }
+  55 |     |         // Subtract 256 bit number from 512 bit number
+  56 |     |         assembly {
+  57 | *   |             prod1 := sub(prod1, gt(remainder, prod0))
+  58 | *   |             prod0 := sub(prod0, remainder)
+  59 |     |         }
+  60 |     | 
+  61 |     |         // Factor powers of two out of denominator
+  62 |     |         // Compute largest power of two divisor of denominator.
+  63 |     |         // Always >= 1.
+  64 | *   |         uint256 twos = -denominator & denominator;
+  65 |     |         // Divide denominator by power of two
+  66 |     |         assembly {
+  67 | *   |             denominator := div(denominator, twos)
+  68 |     |         }
+  69 |     | 
+  70 |     |         // Divide [prod1 prod0] by the factors of two
+  71 |     |         assembly {
+  72 | *   |             prod0 := div(prod0, twos)
+  73 |     |         }
+  74 |     |         // Shift in bits from prod1 into prod0. For this we need
+  75 |     |         // to flip `twos` such that it is 2**256 / twos.
+  76 |     |         // If twos is zero, then it becomes one
+  77 |     |         assembly {
+  78 | *   |             twos := add(div(sub(0, twos), twos), 1)
+  79 |     |         }
+  80 | *   |         prod0 |= prod1 * twos;
+  81 |     | 
+  82 |     |         // Invert denominator mod 2**256
+  83 |     |         // Now that denominator is an odd number, it has an inverse
+  84 |     |         // modulo 2**256 such that denominator * inv = 1 mod 2**256.
+  85 |     |         // Compute the inverse by starting with a seed that is correct
+  86 |     |         // correct for four bits. That is, denominator * inv = 1 mod 2**4
+  87 | *   |         uint256 inv = (3 * denominator) ^ 2;
+  88 |     |         // Now use Newton-Raphson iteration to improve the precision.
+  89 |     |         // Thanks to Hensel's lifting lemma, this also works in modular
+  90 |     |         // arithmetic, doubling the correct bits in each step.
+  91 | *   |         inv *= 2 - denominator * inv; // inverse mod 2**8
+  92 | *   |         inv *= 2 - denominator * inv; // inverse mod 2**16
+  93 | *   |         inv *= 2 - denominator * inv; // inverse mod 2**32
+  94 | *   |         inv *= 2 - denominator * inv; // inverse mod 2**64
+  95 | *   |         inv *= 2 - denominator * inv; // inverse mod 2**128
+  96 | *   |         inv *= 2 - denominator * inv; // inverse mod 2**256
+  97 |     | 
+  98 |     |         // Because the division is now exact we can divide by multiplying
+  99 |     |         // with the modular inverse of denominator. This will give us the
+ 100 |     |         // correct result modulo 2**256. Since the precoditions guarantee
+ 101 |     |         // that the outcome is less than 2**256, this is the final result.
+ 102 |     |         // We don't need to compute the high bits of the result and prod1
+ 103 |     |         // is no longer required.
+ 104 | *   |         result = prod0 * inv;
+ 105 | *   |         return result;
+ 106 |     |     }
+ 107 |     | 
+ 108 |     |     /// @notice Calculates ceil(a×b÷denominator) with full precision. Throws if result overflows a uint256 or denominator == 0
+ 109 |     |     /// @param a The multiplicand
+ 110 |     |     /// @param b The multiplier
+ 111 |     |     /// @param denominator The divisor
+ 112 |     |     /// @return result The 256-bit result
+ 113 | *   |     function mulDivRoundingUp(
+ 114 |     |         uint256 a,
+ 115 |     |         uint256 b,
+ 116 |     |         uint256 denominator
+ 117 | *   |     ) internal pure returns (uint256 result) {
+ 118 | *   |         result = mulDiv(a, b, denominator);
+ 119 | *   |         if (mulmod(a, b, denominator) > 0) {
+ 120 | *   |             require(result < type(uint256).max);
+ 121 | *   |             result++;
+ 122 |     |         }
+ 123 |     |     }
+ 124 |     | }
+ 125 |     | 
+
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/LowGasSafeMath.sol
+  1 |     | // SPDX-License-Identifier: GPL-2.0-or-later
+  2 |     | pragma solidity >=0.7.0;
+  3 |     | 
+  4 |     | /// @title Optimized overflow and underflow safe math operations
+  5 |     | /// @notice Contains methods for doing math operations that revert on overflow or underflow for minimal gas cost
+  6 |     | library LowGasSafeMath {
+  7 |     |     /// @notice Returns x + y, reverts if sum overflows uint256
+  8 |     |     /// @param x The augend
+  9 |     |     /// @param y The addend
+ 10 |     |     /// @return z The sum of x and y
+ 11 | *   |     function add(uint256 x, uint256 y) internal pure returns (uint256 z) {
+ 12 | *   |         require((z = x + y) >= x);
+ 13 |     |     }
+ 14 |     | 
+ 15 |     |     /// @notice Returns x - y, reverts if underflows
+ 16 |     |     /// @param x The minuend
+ 17 |     |     /// @param y The subtrahend
+ 18 |     |     /// @return z The difference of x and y
+ 19 |     |     function sub(uint256 x, uint256 y) internal pure returns (uint256 z) {
+ 20 |     |         require((z = x - y) <= x);
+ 21 |     |     }
+ 22 |     | 
+ 23 |     |     /// @notice Returns x * y, reverts if overflows
+ 24 |     |     /// @param x The multiplicand
+ 25 |     |     /// @param y The multiplier
+ 26 |     |     /// @return z The product of x and y
+ 27 |     |     function mul(uint256 x, uint256 y) internal pure returns (uint256 z) {
+ 28 |     |         require(x == 0 || (z = x * y) / x == y);
+ 29 |     |     }
+ 30 |     | 
+ 31 |     |     /// @notice Returns x + y, reverts if overflows or underflows
+ 32 |     |     /// @param x The augend
+ 33 |     |     /// @param y The addend
+ 34 |     |     /// @return z The sum of x and y
+ 35 |     |     function add(int256 x, int256 y) internal pure returns (int256 z) {
+ 36 |     |         require((z = x + y) >= x == (y >= 0));
+ 37 |     |     }
+ 38 |     | 
+ 39 |     |     /// @notice Returns x - y, reverts if overflows or underflows
+ 40 |     |     /// @param x The minuend
+ 41 |     |     /// @param y The subtrahend
+ 42 |     |     /// @return z The difference of x and y
+ 43 |     |     function sub(int256 x, int256 y) internal pure returns (int256 z) {
+ 44 |     |         require((z = x - y) <= x == (y >= 0));
+ 45 |     |     }
+ 46 |     | }
+ 47 |     | 
+
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/SafeCast.sol
+  1 |     | // SPDX-License-Identifier: GPL-2.0-or-later
+  2 |     | pragma solidity >=0.5.0;
+  3 |     | 
+  4 |     | /// @title Safe casting methods
+  5 |     | /// @notice Contains methods for safely casting between types
+  6 |     | library SafeCast {
+  7 |     |     /// @notice Cast a uint256 to a uint160, revert on overflow
+  8 |     |     /// @param y The uint256 to be downcasted
+  9 |     |     /// @return z The downcasted integer, now type uint160
+ 10 | *   |     function toUint160(uint256 y) internal pure returns (uint160 z) {
+ 11 | *   |         require((z = uint160(y)) == y);
+ 12 |     |     }
+ 13 |     | 
+ 14 |     |     /// @notice Cast a int256 to a int128, revert on overflow or underflow
+ 15 |     |     /// @param y The int256 to be downcasted
+ 16 |     |     /// @return z The downcasted integer, now type int128
+ 17 |     |     function toInt128(int256 y) internal pure returns (int128 z) {
+ 18 |     |         require((z = int128(y)) == y);
+ 19 |     |     }
+ 20 |     | 
+ 21 |     |     /// @notice Cast a uint256 to a int256, revert on overflow
+ 22 |     |     /// @param y The uint256 to be casted
+ 23 |     |     /// @return z The casted integer, now type int256
+ 24 | *   |     function toInt256(uint256 y) internal pure returns (int256 z) {
+ 25 | *   |         require(y < 2**255);
+ 26 | *   |         z = int256(y);
+ 27 |     |     }
+ 28 |     | }
+ 29 |     | 
+
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/SqrtPriceMath.sol
+   1 |     | // SPDX-License-Identifier: BUSL-1.1
+   2 |     | pragma solidity >=0.5.0;
+   3 |     | 
+   4 |     | import './LowGasSafeMath.sol';
+   5 |     | import './SafeCast.sol';
+   6 |     | 
+   7 |     | import './FullMath.sol';
+   8 |     | import './UnsafeMath.sol';
+   9 |     | import './FixedPoint96.sol';
+  10 |     | 
+  11 |     | /// @title Functions based on Q64.96 sqrt price and liquidity
+  12 |     | /// @notice Contains the math that uses square root of price as a Q64.96 and liquidity to compute deltas
+  13 |     | library SqrtPriceMath {
+  14 |     |     using LowGasSafeMath for uint256;
+  15 |     |     using SafeCast for uint256;
+  16 |     | 
+  17 |     |     /// @notice Gets the next sqrt price given a delta of token0
+  18 |     |     /// @dev Always rounds up, because in the exact output case (increasing price) we need to move the price at least
+  19 |     |     /// far enough to get the desired output amount, and in the exact input case (decreasing price) we need to move the
+  20 |     |     /// price less in order to not send too much output.
+  21 |     |     /// The most precise formula for this is liquidity * sqrtPX96 / (liquidity +- amount * sqrtPX96),
+  22 |     |     /// if this is impossible because of overflow, we calculate liquidity / (liquidity / sqrtPX96 +- amount).
+  23 |     |     /// @param sqrtPX96 The starting price, i.e. before accounting for the token0 delta
+  24 |     |     /// @param liquidity The amount of usable liquidity
+  25 |     |     /// @param amount How much of token0 to add or remove from virtual reserves
+  26 |     |     /// @param add Whether to add or remove the amount of token0
+  27 |     |     /// @return The price after adding or removing amount, depending on add
+  28 | *   |     function getNextSqrtPriceFromAmount0RoundingUp(
+  29 |     |         uint160 sqrtPX96,
+  30 |     |         uint128 liquidity,
+  31 |     |         uint256 amount,
+  32 |     |         bool add
+  33 | *   |     ) internal pure returns (uint160) {
+  34 |     |         // we short circuit amount == 0 because the result is otherwise not guaranteed to equal the input price
+  35 | *   |         if (amount == 0) return sqrtPX96;
+  36 | *   |         uint256 numerator1 = uint256(liquidity) << FixedPoint96.RESOLUTION;
+  37 |     | 
+  38 | *   |         if (add) {
+  39 | *   |             uint256 product;
+  40 | *   |             if ((product = amount * sqrtPX96) / amount == sqrtPX96) {
+  41 | *   |                 uint256 denominator = numerator1 + product;
+  42 | *   |                 if (denominator >= numerator1)
+  43 |     |                     // always fits in 160 bits
+  44 | *   |                     return uint160(FullMath.mulDivRoundingUp(numerator1, sqrtPX96, denominator));
+  45 |     |             }
+  46 |     | 
+  47 | *   |             return uint160(UnsafeMath.divRoundingUp(numerator1, (numerator1 / sqrtPX96).add(amount)));
+  48 |     |         } else {
+  49 | *   |             uint256 product;
+  50 |     |             // if the product overflows, we know the denominator underflows
+  51 |     |             // in addition, we must check that the denominator does not underflow
+  52 | *   |             require((product = amount * sqrtPX96) / amount == sqrtPX96 && numerator1 > product);
+  53 | *   |             uint256 denominator = numerator1 - product;
+  54 | *   |             return FullMath.mulDivRoundingUp(numerator1, sqrtPX96, denominator).toUint160();
+  55 |     |         }
+  56 |     |     }
+  57 |     | 
+  58 |     |     /// @notice Gets the next sqrt price given a delta of token1
+  59 |     |     /// @dev Always rounds down, because in the exact output case (decreasing price) we need to move the price at least
+  60 |     |     /// far enough to get the desired output amount, and in the exact input case (increasing price) we need to move the
+  61 |     |     /// price less in order to not send too much output.
+  62 |     |     /// The formula we compute is within <1 wei of the lossless version: sqrtPX96 +- amount / liquidity
+  63 |     |     /// @param sqrtPX96 The starting price, i.e., before accounting for the token1 delta
+  64 |     |     /// @param liquidity The amount of usable liquidity
+  65 |     |     /// @param amount How much of token1 to add, or remove, from virtual reserves
+  66 |     |     /// @param add Whether to add, or remove, the amount of token1
+  67 |     |     /// @return The price after adding or removing `amount`
+  68 | *   |     function getNextSqrtPriceFromAmount1RoundingDown(
+  69 |     |         uint160 sqrtPX96,
+  70 |     |         uint128 liquidity,
+  71 |     |         uint256 amount,
+  72 |     |         bool add
+  73 | *   |     ) internal pure returns (uint160) {
+  74 |     |         // if we're adding (subtracting), rounding down requires rounding the quotient down (up)
+  75 |     |         // in both cases, avoid a mulDiv for most inputs
+  76 | *   |         if (add) {
+  77 | *   |             uint256 quotient =
+  78 |     |                 (
+  79 | *   |                     amount <= type(uint160).max
+  80 | *   |                         ? (amount << FixedPoint96.RESOLUTION) / liquidity
+  81 | *   |                         : FullMath.mulDiv(amount, FixedPoint96.Q96, liquidity)
+  82 |     |                 );
+  83 |     | 
+  84 | *   |             return uint256(sqrtPX96).add(quotient).toUint160();
+  85 |     |         } else {
+  86 | *   |             uint256 quotient =
+  87 |     |                 (
+  88 | *   |                     amount <= type(uint160).max
+  89 | *   |                         ? UnsafeMath.divRoundingUp(amount << FixedPoint96.RESOLUTION, liquidity)
+  90 | *   |                         : FullMath.mulDivRoundingUp(amount, FixedPoint96.Q96, liquidity)
+  91 |     |                 );
+  92 |     | 
+  93 | *   |             require(sqrtPX96 > quotient);
+  94 |     |             // always fits 160 bits
+  95 | *   |             return uint160(sqrtPX96 - quotient);
+  96 |     |         }
+  97 |     |     }
+  98 |     | 
+  99 |     |     /// @notice Gets the next sqrt price given an input amount of token0 or token1
+ 100 |     |     /// @dev Throws if price or liquidity are 0, or if the next price is out of bounds
+ 101 |     |     /// @param sqrtPX96 The starting price, i.e., before accounting for the input amount
+ 102 |     |     /// @param liquidity The amount of usable liquidity
+ 103 |     |     /// @param amountIn How much of token0, or token1, is being swapped in
+ 104 |     |     /// @param zeroForOne Whether the amount in is token0 or token1
+ 105 |     |     /// @return sqrtQX96 The price after adding the input amount to token0 or token1
+ 106 | *   |     function getNextSqrtPriceFromInput(
+ 107 |     |         uint160 sqrtPX96,
+ 108 |     |         uint128 liquidity,
+ 109 |     |         uint256 amountIn,
+ 110 |     |         bool zeroForOne
+ 111 | *   |     ) internal pure returns (uint160 sqrtQX96) {
+ 112 | *   |         require(sqrtPX96 > 0);
+ 113 | *   |         require(liquidity > 0);
+ 114 |     | 
+ 115 |     |         // round to make sure that we don't pass the target price
+ 116 | *   |         return
+ 117 | *   |             zeroForOne
+ 118 | *   |                 ? getNextSqrtPriceFromAmount0RoundingUp(sqrtPX96, liquidity, amountIn, true)
+ 119 | *   |                 : getNextSqrtPriceFromAmount1RoundingDown(sqrtPX96, liquidity, amountIn, true);
+ 120 |     |     }
+ 121 |     | 
+ 122 |     |     /// @notice Gets the next sqrt price given an output amount of token0 or token1
+ 123 |     |     /// @dev Throws if price or liquidity are 0 or the next price is out of bounds
+ 124 |     |     /// @param sqrtPX96 The starting price before accounting for the output amount
+ 125 |     |     /// @param liquidity The amount of usable liquidity
+ 126 |     |     /// @param amountOut How much of token0, or token1, is being swapped out
+ 127 |     |     /// @param zeroForOne Whether the amount out is token0 or token1
+ 128 |     |     /// @return sqrtQX96 The price after removing the output amount of token0 or token1
+ 129 | *   |     function getNextSqrtPriceFromOutput(
+ 130 |     |         uint160 sqrtPX96,
+ 131 |     |         uint128 liquidity,
+ 132 |     |         uint256 amountOut,
+ 133 |     |         bool zeroForOne
+ 134 | *   |     ) internal pure returns (uint160 sqrtQX96) {
+ 135 | *   |         require(sqrtPX96 > 0);
+ 136 | *   |         require(liquidity > 0);
+ 137 |     | 
+ 138 |     |         // round to make sure that we pass the target price
+ 139 | *   |         return
+ 140 | *   |             zeroForOne
+ 141 | *   |                 ? getNextSqrtPriceFromAmount1RoundingDown(sqrtPX96, liquidity, amountOut, false)
+ 142 | *   |                 : getNextSqrtPriceFromAmount0RoundingUp(sqrtPX96, liquidity, amountOut, false);
+ 143 |     |     }
+ 144 |     | 
+ 145 |     |     /// @notice Gets the amount0 delta between two prices
+ 146 |     |     /// @dev Calculates liquidity / sqrt(lower) - liquidity / sqrt(upper),
+ 147 |     |     /// i.e. liquidity * (sqrt(upper) - sqrt(lower)) / (sqrt(upper) * sqrt(lower))
+ 148 |     |     /// @param sqrtRatioAX96 A sqrt price
+ 149 |     |     /// @param sqrtRatioBX96 Another sqrt price
+ 150 |     |     /// @param liquidity The amount of usable liquidity
+ 151 |     |     /// @param roundUp Whether to round the amount up or down
+ 152 |     |     /// @return amount0 Amount of token0 required to cover a position of size liquidity between the two passed prices
+ 153 | *   |     function getAmount0Delta(
+ 154 |     |         uint160 sqrtRatioAX96,
+ 155 |     |         uint160 sqrtRatioBX96,
+ 156 |     |         uint128 liquidity,
+ 157 |     |         bool roundUp
+ 158 | *   |     ) internal pure returns (uint256 amount0) {
+ 159 | *   |         if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
+ 160 |     | 
+ 161 | *   |         uint256 numerator1 = uint256(liquidity) << FixedPoint96.RESOLUTION;
+ 162 | *   |         uint256 numerator2 = sqrtRatioBX96 - sqrtRatioAX96;
+ 163 |     | 
+ 164 | *   |         require(sqrtRatioAX96 > 0);
+ 165 |     | 
+ 166 | *   |         return
+ 167 | *   |             roundUp
+ 168 | *   |                 ? UnsafeMath.divRoundingUp(
+ 169 | *   |                     FullMath.mulDivRoundingUp(numerator1, numerator2, sqrtRatioBX96),
+ 170 | *   |                     sqrtRatioAX96
+ 171 |     |                 )
+ 172 | *   |                 : FullMath.mulDiv(numerator1, numerator2, sqrtRatioBX96) / sqrtRatioAX96;
+ 173 |     |     }
+ 174 |     | 
+ 175 |     |     /// @notice Gets the amount1 delta between two prices
+ 176 |     |     /// @dev Calculates liquidity * (sqrt(upper) - sqrt(lower))
+ 177 |     |     /// @param sqrtRatioAX96 A sqrt price
+ 178 |     |     /// @param sqrtRatioBX96 Another sqrt price
+ 179 |     |     /// @param liquidity The amount of usable liquidity
+ 180 |     |     /// @param roundUp Whether to round the amount up, or down
+ 181 |     |     /// @return amount1 Amount of token1 required to cover a position of size liquidity between the two passed prices
+ 182 | *   |     function getAmount1Delta(
+ 183 |     |         uint160 sqrtRatioAX96,
+ 184 |     |         uint160 sqrtRatioBX96,
+ 185 |     |         uint128 liquidity,
+ 186 |     |         bool roundUp
+ 187 | *   |     ) internal pure returns (uint256 amount1) {
+ 188 | *   |         if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
+ 189 |     | 
+ 190 | *   |         return
+ 191 | *   |             roundUp
+ 192 | *   |                 ? FullMath.mulDivRoundingUp(liquidity, sqrtRatioBX96 - sqrtRatioAX96, FixedPoint96.Q96)
+ 193 | *   |                 : FullMath.mulDiv(liquidity, sqrtRatioBX96 - sqrtRatioAX96, FixedPoint96.Q96);
+ 194 |     |     }
+ 195 |     | 
+ 196 |     |     /// @notice Helper that gets signed token0 delta
+ 197 |     |     /// @param sqrtRatioAX96 A sqrt price
+ 198 |     |     /// @param sqrtRatioBX96 Another sqrt price
+ 199 |     |     /// @param liquidity The change in liquidity for which to compute the amount0 delta
+ 200 |     |     /// @return amount0 Amount of token0 corresponding to the passed liquidityDelta between the two prices
+ 201 | *   |     function getAmount0Delta(
+ 202 |     |         uint160 sqrtRatioAX96,
+ 203 |     |         uint160 sqrtRatioBX96,
+ 204 |     |         int128 liquidity
+ 205 | *   |     ) internal pure returns (int256 amount0) {
+ 206 | *   |         return
+ 207 | *   |             liquidity < 0
+ 208 | *   |                 ? -getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, uint128(-liquidity), false).toInt256()
+ 209 | *   |                 : getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, uint128(liquidity), true).toInt256();
+ 210 |     |     }
+ 211 |     | 
+ 212 |     |     /// @notice Helper that gets signed token1 delta
+ 213 |     |     /// @param sqrtRatioAX96 A sqrt price
+ 214 |     |     /// @param sqrtRatioBX96 Another sqrt price
+ 215 |     |     /// @param liquidity The change in liquidity for which to compute the amount1 delta
+ 216 |     |     /// @return amount1 Amount of token1 corresponding to the passed liquidityDelta between the two prices
+ 217 | *   |     function getAmount1Delta(
+ 218 |     |         uint160 sqrtRatioAX96,
+ 219 |     |         uint160 sqrtRatioBX96,
+ 220 |     |         int128 liquidity
+ 221 | *   |     ) internal pure returns (int256 amount1) {
+ 222 | *   |         return
+ 223 | *   |             liquidity < 0
+ 224 | *   |                 ? -getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, uint128(-liquidity), false).toInt256()
+ 225 | *   |                 : getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, uint128(liquidity), true).toInt256();
+ 226 |     |     }
+ 227 |     | }
+ 228 |     | 
+
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/UnsafeMath.sol
+  1 |     | // SPDX-License-Identifier: GPL-2.0-or-later
+  2 |     | pragma solidity >=0.5.0;
+  3 |     | 
+  4 |     | /// @title Math functions that do not check inputs or outputs
+  5 |     | /// @notice Contains methods that perform common math functions but do not do any overflow or underflow checks
+  6 |     | library UnsafeMath {
+  7 |     |     /// @notice Returns ceil(x / y)
+  8 |     |     /// @dev division by 0 has unspecified behavior, and must be checked externally
+  9 |     |     /// @param x The dividend
+ 10 |     |     /// @param y The divisor
+ 11 |     |     /// @return z The quotient, ceil(x / y)
+ 12 | *   |     function divRoundingUp(uint256 x, uint256 y) internal pure returns (uint256 z) {
+ 13 | *   |         assembly {
+ 14 | *   |             z := add(div(x, y), gt(mod(x, y), 0))
+ 15 |     |         }
+ 16 |     |     }
+ 17 |     | }
+ 18 |     | 
+
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/test/SqrtPriceMathEchidnaTest.sol
+   1 |     | // SPDX-License-Identifier: UNLICENSED
+   2 |     | pragma solidity =0.7.6;
+   3 |     | 
+   4 |     | import '../libraries/FullMath.sol';
+   5 |     | import '../libraries/SqrtPriceMath.sol';
+   6 |     | import '../libraries/FixedPoint96.sol';
+   7 |     | 
+   8 | *   | contract SqrtPriceMathEchidnaTest {
+   9 | *   |     function mulDivRoundingUpInvariants(
+  10 |     |         uint256 x,
+  11 |     |         uint256 y,
+  12 |     |         uint256 z
+  13 |     |     ) external pure {
+  14 | *   |         require(z > 0);
+  15 | *   |         uint256 notRoundedUp = FullMath.mulDiv(x, y, z);
+  16 | *   |         uint256 roundedUp = FullMath.mulDivRoundingUp(x, y, z);
+  17 | *   |         assert(roundedUp >= notRoundedUp);
+  18 | *   |         assert(roundedUp - notRoundedUp < 2);
+  19 | *   |         if (roundedUp - notRoundedUp == 1) {
+  20 | *   |             assert(mulmod(x, y, z) > 0);
+  21 |     |         } else {
+  22 | *   |             assert(mulmod(x, y, z) == 0);
+  23 |     |         }
+  24 |     |     }
+  25 |     | 
+  26 | *   |     function getNextSqrtPriceFromInputInvariants(
+  27 |     |         uint160 sqrtP,
+  28 |     |         uint128 liquidity,
+  29 |     |         uint256 amountIn,
+  30 |     |         bool zeroForOne
+  31 |     |     ) external pure {
+  32 | *   |         uint160 sqrtQ = SqrtPriceMath.getNextSqrtPriceFromInput(sqrtP, liquidity, amountIn, zeroForOne);
+  33 |     | 
+  34 | *   |         if (zeroForOne) {
+  35 | *   |             assert(sqrtQ <= sqrtP);
+  36 | *   |             assert(amountIn >= SqrtPriceMath.getAmount0Delta(sqrtQ, sqrtP, liquidity, true));
+  37 |     |         } else {
+  38 | *   |             assert(sqrtQ >= sqrtP);
+  39 | *   |             assert(amountIn >= SqrtPriceMath.getAmount1Delta(sqrtP, sqrtQ, liquidity, true));
+  40 |     |         }
+  41 |     |     }
+  42 |     | 
+  43 | *   |     function getNextSqrtPriceFromOutputInvariants(
+  44 |     |         uint160 sqrtP,
+  45 |     |         uint128 liquidity,
+  46 |     |         uint256 amountOut,
+  47 |     |         bool zeroForOne
+  48 |     |     ) external pure {
+  49 | *   |         uint160 sqrtQ = SqrtPriceMath.getNextSqrtPriceFromOutput(sqrtP, liquidity, amountOut, zeroForOne);
+  50 |     | 
+  51 | *   |         if (zeroForOne) {
+  52 | *   |             assert(sqrtQ <= sqrtP);
+  53 | *   |             assert(amountOut <= SqrtPriceMath.getAmount1Delta(sqrtQ, sqrtP, liquidity, false));
+  54 |     |         } else {
+  55 | *   |             assert(sqrtQ > 0); // this has to be true, otherwise we need another require
+  56 | *   |             assert(sqrtQ >= sqrtP);
+  57 | *   |             assert(amountOut <= SqrtPriceMath.getAmount0Delta(sqrtP, sqrtQ, liquidity, false));
+  58 |     |         }
+  59 |     |     }
+  60 |     | 
+  61 | *   |     function getNextSqrtPriceFromAmount0RoundingUpInvariants(
+  62 |     |         uint160 sqrtPX96,
+  63 |     |         uint128 liquidity,
+  64 |     |         uint256 amount,
+  65 |     |         bool add
+  66 |     |     ) external pure {
+  67 | *   |         require(sqrtPX96 > 0);
+  68 | *   |         require(liquidity > 0);
+  69 | *   |         uint160 sqrtQX96 = SqrtPriceMath.getNextSqrtPriceFromAmount0RoundingUp(sqrtPX96, liquidity, amount, add);
+  70 |     | 
+  71 | *   |         if (add) {
+  72 | *   |             assert(sqrtQX96 <= sqrtPX96);
+  73 |     |         } else {
+  74 | *   |             assert(sqrtQX96 >= sqrtPX96);
+  75 |     |         }
+  76 |     | 
+  77 | *   |         if (amount == 0) {
+  78 | *   |             assert(sqrtPX96 == sqrtQX96);
+  79 |     |         }
+  80 |     |     }
+  81 |     | 
+  82 | *   |     function getNextSqrtPriceFromAmount1RoundingDownInvariants(
+  83 |     |         uint160 sqrtPX96,
+  84 |     |         uint128 liquidity,
+  85 |     |         uint256 amount,
+  86 |     |         bool add
+  87 |     |     ) external pure {
+  88 | *   |         require(sqrtPX96 > 0);
+  89 | *   |         require(liquidity > 0);
+  90 | *   |         uint160 sqrtQX96 = SqrtPriceMath.getNextSqrtPriceFromAmount1RoundingDown(sqrtPX96, liquidity, amount, add);
+  91 |     | 
+  92 | *   |         if (add) {
+  93 | *   |             assert(sqrtQX96 >= sqrtPX96);
+  94 |     |         } else {
+  95 | *   |             assert(sqrtQX96 <= sqrtPX96);
+  96 |     |         }
+  97 |     | 
+  98 | *   |         if (amount == 0) {
+  99 | *   |             assert(sqrtPX96 == sqrtQX96);
+ 100 |     |         }
+ 101 |     |     }
+ 102 |     | 
+ 103 | *   |     function getAmount0DeltaInvariants(
+ 104 |     |         uint160 sqrtP,
+ 105 |     |         uint160 sqrtQ,
+ 106 |     |         uint128 liquidity
+ 107 |     |     ) external pure {
+ 108 | *   |         require(sqrtP > 0 && sqrtQ > 0);
+ 109 |     | 
+ 110 | *   |         uint256 amount0Down = SqrtPriceMath.getAmount0Delta(sqrtQ, sqrtP, liquidity, false);
+ 111 | *   |         assert(amount0Down == SqrtPriceMath.getAmount0Delta(sqrtP, sqrtQ, liquidity, false));
+ 112 |     | 
+ 113 | *   |         uint256 amount0Up = SqrtPriceMath.getAmount0Delta(sqrtQ, sqrtP, liquidity, true);
+ 114 | *   |         assert(amount0Up == SqrtPriceMath.getAmount0Delta(sqrtP, sqrtQ, liquidity, true));
+ 115 |     | 
+ 116 | *   |         assert(amount0Down <= amount0Up);
+ 117 |     |         // diff is 0 or 1
+ 118 | *   |         assert(amount0Up - amount0Down < 2);
+ 119 |     |     }
+ 120 |     | 
+ 121 |     |     // ensure that chained division is always equal to the full-precision case for
+ 122 |     |     // liquidity * (sqrt(P) - sqrt(Q)) / (sqrt(P) * sqrt(Q))
+ 123 | *   |     function getAmount0DeltaEquivalency(
+ 124 |     |         uint160 sqrtP,
+ 125 |     |         uint160 sqrtQ,
+ 126 |     |         uint128 liquidity,
+ 127 |     |         bool roundUp
+ 128 |     |     ) external pure {
+ 129 | *   |         require(sqrtP >= sqrtQ);
+ 130 | *   |         require(sqrtP > 0 && sqrtQ > 0);
+ 131 | *   |         require((sqrtP * sqrtQ) / sqrtP == sqrtQ);
+ 132 |     | 
+ 133 | *   |         uint256 numerator1 = uint256(liquidity) << FixedPoint96.RESOLUTION;
+ 134 | *   |         uint256 numerator2 = sqrtP - sqrtQ;
+ 135 | *   |         uint256 denominator = uint256(sqrtP) * sqrtQ;
+ 136 |     | 
+ 137 | *   |         uint256 safeResult =
+ 138 | *   |             roundUp
+ 139 | *   |                 ? FullMath.mulDivRoundingUp(numerator1, numerator2, denominator)
+ 140 | *   |                 : FullMath.mulDiv(numerator1, numerator2, denominator);
+ 141 | *   |         uint256 fullResult = SqrtPriceMath.getAmount0Delta(sqrtQ, sqrtP, liquidity, roundUp);
+ 142 |     | 
+ 143 | *   |         assert(safeResult == fullResult);
+ 144 |     |     }
+ 145 |     | 
+ 146 | *   |     function getAmount1DeltaInvariants(
+ 147 |     |         uint160 sqrtP,
+ 148 |     |         uint160 sqrtQ,
+ 149 |     |         uint128 liquidity
+ 150 |     |     ) external pure {
+ 151 | *   |         require(sqrtP > 0 && sqrtQ > 0);
+ 152 |     | 
+ 153 | *   |         uint256 amount1Down = SqrtPriceMath.getAmount1Delta(sqrtP, sqrtQ, liquidity, false);
+ 154 | *   |         assert(amount1Down == SqrtPriceMath.getAmount1Delta(sqrtQ, sqrtP, liquidity, false));
+ 155 |     | 
+ 156 | *   |         uint256 amount1Up = SqrtPriceMath.getAmount1Delta(sqrtP, sqrtQ, liquidity, true);
+ 157 | *   |         assert(amount1Up == SqrtPriceMath.getAmount1Delta(sqrtQ, sqrtP, liquidity, true));
+ 158 |     | 
+ 159 | *   |         assert(amount1Down <= amount1Up);
+ 160 |     |         // diff is 0 or 1
+ 161 | *   |         assert(amount1Up - amount1Down < 2);
+ 162 |     |     }
+ 163 |     | 
+ 164 | *   |     function getAmount0DeltaSignedInvariants(
+ 165 |     |         uint160 sqrtP,
+ 166 |     |         uint160 sqrtQ,
+ 167 |     |         int128 liquidity
+ 168 |     |     ) external pure {
+ 169 | *   |         require(sqrtP > 0 && sqrtQ > 0);
+ 170 |     | 
+ 171 | *   |         int256 amount0 = SqrtPriceMath.getAmount0Delta(sqrtQ, sqrtP, liquidity);
+ 172 | *   |         if (liquidity < 0) assert(amount0 <= 0);
+ 173 | *   |         if (liquidity > 0) {
+ 174 | *   |             if (sqrtP == sqrtQ) assert(amount0 == 0);
+ 175 | *   |             else assert(amount0 > 0);
+ 176 |     |         }
+ 177 | *   |         if (liquidity == 0) assert(amount0 == 0);
+ 178 |     |     }
+ 179 |     | 
+ 180 | *   |     function getAmount1DeltaSignedInvariants(
+ 181 |     |         uint160 sqrtP,
+ 182 |     |         uint160 sqrtQ,
+ 183 |     |         int128 liquidity
+ 184 |     |     ) external pure {
+ 185 | *   |         require(sqrtP > 0 && sqrtQ > 0);
+ 186 |     | 
+ 187 | *   |         int256 amount1 = SqrtPriceMath.getAmount1Delta(sqrtP, sqrtQ, liquidity);
+ 188 | *   |         if (liquidity < 0) assert(amount1 <= 0);
+ 189 | *   |         if (liquidity > 0) {
+ 190 | *   |             if (sqrtP == sqrtQ) assert(amount1 == 0);
+ 191 | *   |             else assert(amount1 > 0);
+ 192 |     |         }
+ 193 | *   |         if (liquidity == 0) assert(amount1 == 0);
+ 194 |     |     }
+ 195 |     | 
+ 196 | *   |     function getOutOfRangeMintInvariants(
+ 197 |     |         uint160 sqrtA,
+ 198 |     |         uint160 sqrtB,
+ 199 |     |         int128 liquidity
+ 200 |     |     ) external pure {
+ 201 | *   |         require(sqrtA > 0 && sqrtB > 0);
+ 202 | *   |         require(liquidity > 0);
+ 203 |     | 
+ 204 | *   |         int256 amount0 = SqrtPriceMath.getAmount0Delta(sqrtA, sqrtB, liquidity);
+ 205 | *   |         int256 amount1 = SqrtPriceMath.getAmount1Delta(sqrtA, sqrtB, liquidity);
+ 206 |     | 
+ 207 | *   |         if (sqrtA == sqrtB) {
+ 208 | *   |             assert(amount0 == 0);
+ 209 | *   |             assert(amount1 == 0);
+ 210 |     |         } else {
+ 211 | *   |             assert(amount0 > 0);
+ 212 | *   |             assert(amount1 > 0);
+ 213 |     |         }
+ 214 |     |     }
+ 215 |     | 
+ 216 | *   |     function getInRangeMintInvariants(
+ 217 |     |         uint160 sqrtLower,
+ 218 |     |         uint160 sqrtCurrent,
+ 219 |     |         uint160 sqrtUpper,
+ 220 |     |         int128 liquidity
+ 221 |     |     ) external pure {
+ 222 | *   |         require(sqrtLower > 0);
+ 223 | *   |         require(sqrtLower < sqrtUpper);
+ 224 | *   |         require(sqrtLower <= sqrtCurrent && sqrtCurrent <= sqrtUpper);
+ 225 | *   |         require(liquidity > 0);
+ 226 |     | 
+ 227 | *   |         int256 amount0 = SqrtPriceMath.getAmount0Delta(sqrtCurrent, sqrtUpper, liquidity);
+ 228 | *   |         int256 amount1 = SqrtPriceMath.getAmount1Delta(sqrtLower, sqrtCurrent, liquidity);
+ 229 |     | 
+ 230 | *   |         assert(amount0 > 0 || amount1 > 0);
+ 231 |     |     }
+ 232 |     | }
+ 233 |     | 
+

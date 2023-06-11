@@ -1,0 +1,118 @@
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/BitMath.sol
+  1 |     | // SPDX-License-Identifier: GPL-2.0-or-later
+  2 |     | pragma solidity >=0.5.0;
+  3 |     | 
+  4 |     | /// @title BitMath
+  5 |     | /// @dev This library provides functionality for computing bit properties of an unsigned integer
+  6 |     | library BitMath {
+  7 |     |     /// @notice Returns the index of the most significant bit of the number,
+  8 |     |     ///     where the least significant bit is at index 0 and the most significant bit is at index 255
+  9 |     |     /// @dev The function satisfies the property:
+ 10 |     |     ///     x >= 2**mostSignificantBit(x) and x < 2**(mostSignificantBit(x)+1)
+ 11 |     |     /// @param x the value for which to compute the most significant bit, must be greater than 0
+ 12 |     |     /// @return r the index of the most significant bit
+ 13 | *   |     function mostSignificantBit(uint256 x) internal pure returns (uint8 r) {
+ 14 | *   |         require(x > 0);
+ 15 |     | 
+ 16 | *   |         if (x >= 0x100000000000000000000000000000000) {
+ 17 | *   |             x >>= 128;
+ 18 | *   |             r += 128;
+ 19 |     |         }
+ 20 | *   |         if (x >= 0x10000000000000000) {
+ 21 | *   |             x >>= 64;
+ 22 | *   |             r += 64;
+ 23 |     |         }
+ 24 | *   |         if (x >= 0x100000000) {
+ 25 | *   |             x >>= 32;
+ 26 | *   |             r += 32;
+ 27 |     |         }
+ 28 | *   |         if (x >= 0x10000) {
+ 29 | *   |             x >>= 16;
+ 30 | *   |             r += 16;
+ 31 |     |         }
+ 32 | *   |         if (x >= 0x100) {
+ 33 | *   |             x >>= 8;
+ 34 | *   |             r += 8;
+ 35 |     |         }
+ 36 | *   |         if (x >= 0x10) {
+ 37 | *   |             x >>= 4;
+ 38 | *   |             r += 4;
+ 39 |     |         }
+ 40 | *   |         if (x >= 0x4) {
+ 41 | *   |             x >>= 2;
+ 42 | *   |             r += 2;
+ 43 |     |         }
+ 44 | *   |         if (x >= 0x2) r += 1;
+ 45 |     |     }
+ 46 |     | 
+ 47 |     |     /// @notice Returns the index of the least significant bit of the number,
+ 48 |     |     ///     where the least significant bit is at index 0 and the most significant bit is at index 255
+ 49 |     |     /// @dev The function satisfies the property:
+ 50 |     |     ///     (x & 2**leastSignificantBit(x)) != 0 and (x & (2**(leastSignificantBit(x)) - 1)) == 0)
+ 51 |     |     /// @param x the value for which to compute the least significant bit, must be greater than 0
+ 52 |     |     /// @return r the index of the least significant bit
+ 53 | *   |     function leastSignificantBit(uint256 x) internal pure returns (uint8 r) {
+ 54 | *   |         require(x > 0);
+ 55 |     | 
+ 56 | *   |         r = 255;
+ 57 | *   |         if (x & type(uint128).max > 0) {
+ 58 | *   |             r -= 128;
+ 59 |     |         } else {
+ 60 | *   |             x >>= 128;
+ 61 |     |         }
+ 62 | *   |         if (x & type(uint64).max > 0) {
+ 63 | *   |             r -= 64;
+ 64 |     |         } else {
+ 65 | *   |             x >>= 64;
+ 66 |     |         }
+ 67 | *   |         if (x & type(uint32).max > 0) {
+ 68 | *   |             r -= 32;
+ 69 |     |         } else {
+ 70 | *   |             x >>= 32;
+ 71 |     |         }
+ 72 | *   |         if (x & type(uint16).max > 0) {
+ 73 | *   |             r -= 16;
+ 74 |     |         } else {
+ 75 | *   |             x >>= 16;
+ 76 |     |         }
+ 77 | *   |         if (x & type(uint8).max > 0) {
+ 78 | *   |             r -= 8;
+ 79 |     |         } else {
+ 80 | *   |             x >>= 8;
+ 81 |     |         }
+ 82 | *   |         if (x & 0xf > 0) {
+ 83 | *   |             r -= 4;
+ 84 |     |         } else {
+ 85 | *   |             x >>= 4;
+ 86 |     |         }
+ 87 | *   |         if (x & 0x3 > 0) {
+ 88 | *   |             r -= 2;
+ 89 |     |         } else {
+ 90 | *   |             x >>= 2;
+ 91 |     |         }
+ 92 | *   |         if (x & 0x1 > 0) r -= 1;
+ 93 |     |     }
+ 94 |     | }
+ 95 |     | 
+
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/test/BitMathEchidnaTest.sol
+  1 |     | // SPDX-License-Identifier: UNLICENSED
+  2 |     | pragma solidity =0.7.6;
+  3 |     | 
+  4 |     | import '../libraries/BitMath.sol';
+  5 |     | 
+  6 | *   | contract BitMathEchidnaTest {
+  7 | *   |     function mostSignificantBitInvariant(uint256 input) external pure {
+  8 | *   |         uint8 msb = BitMath.mostSignificantBit(input);
+  9 | *   |         assert(input >= (uint256(2)**msb));
+ 10 | *   |         assert(msb == 255 || input < uint256(2)**(msb + 1));
+ 11 |     |     }
+ 12 |     | 
+ 13 | *   |     function leastSignificantBitInvariant(uint256 input) external pure {
+ 14 | *   |         uint8 lsb = BitMath.leastSignificantBit(input);
+ 15 | *   |         assert(input & (uint256(2)**lsb) != 0);
+ 16 | *   |         assert(input & (uint256(2)**lsb - 1) == 0);
+ 17 |     |     }
+ 18 |     | }
+ 19 |     | 
+
