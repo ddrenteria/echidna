@@ -1,0 +1,658 @@
+<style> code { white-space: pre-wrap; display: block; background-color: #eee; }.executed { background-color: #afa; }.reverted { background-color: #ffa; }.unexecuted { background-color: #faa; }.neutral { background-color: #eee; }</style><b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/FixedPoint96.sol</b>
+<code>
+  1 |     | <span class='neutral'>// SPDX-License-Identifier: GPL-2.0-or-later</span>
+  2 |     | <span class='neutral'>pragma solidity &gt;=0.4.0;</span>
+  3 |     | <span class='neutral'></span>
+  4 |     | <span class='neutral'>/// @title FixedPoint96</span>
+  5 |     | <span class='neutral'>/// @notice A library for handling binary fixed point numbers, see https://en.wikipedia.org/wiki/Q_(number_format)</span>
+  6 |     | <span class='neutral'>/// @dev Used in SqrtPriceMath.sol</span>
+  7 |     | <span class='unexecuted'>library FixedPoint96 {</span>
+  8 | *   | <span class='executed'>    uint8 internal constant RESOLUTION = 96;</span>
+  9 | *   | <span class='executed'>    uint256 internal constant Q96 = 0x1000000000000000000000000;</span>
+ 10 |     | <span class='neutral'>}</span>
+ 11 |     | <span class='neutral'></span>
+
+</code>
+<br />
+
+<b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/FullMath.sol</b>
+<code>
+   1 |     | <span class='neutral'>// SPDX-License-Identifier: MIT</span>
+   2 |     | <span class='neutral'>pragma solidity &gt;=0.4.0 &lt;0.8.0;</span>
+   3 |     | <span class='neutral'></span>
+   4 |     | <span class='neutral'>/// @title Contains 512-bit math functions</span>
+   5 |     | <span class='neutral'>/// @notice Facilitates multiplication and division that can have overflow of an intermediate value without any loss of precision</span>
+   6 |     | <span class='neutral'>/// @dev Handles &quot;phantom overflow&quot; i.e., allows multiplication and division where an intermediate value overflows 256 bits</span>
+   7 |     | <span class='unexecuted'>library FullMath {</span>
+   8 |     | <span class='neutral'>    /// @notice Calculates floor(a×b÷denominator) with full precision. Throws if result overflows a uint256 or denominator == 0</span>
+   9 |     | <span class='neutral'>    /// @param a The multiplicand</span>
+  10 |     | <span class='neutral'>    /// @param b The multiplier</span>
+  11 |     | <span class='neutral'>    /// @param denominator The divisor</span>
+  12 |     | <span class='neutral'>    /// @return result The 256-bit result</span>
+  13 |     | <span class='neutral'>    /// @dev Credit to Remco Bloemen under MIT license https://xn--2-umb.com/21/muldiv</span>
+  14 | *   | <span class='executed'>    function mulDiv(</span>
+  15 |     | <span class='neutral'>        uint256 a,</span>
+  16 |     | <span class='neutral'>        uint256 b,</span>
+  17 |     | <span class='neutral'>        uint256 denominator</span>
+  18 | *   | <span class='executed'>    ) internal pure returns (uint256 result) {</span>
+  19 |     | <span class='neutral'>        // 512-bit multiply [prod1 prod0] = a * b</span>
+  20 |     | <span class='neutral'>        // Compute the product mod 2**256 and mod 2**256 - 1</span>
+  21 |     | <span class='neutral'>        // then use the Chinese Remainder Theorem to reconstruct</span>
+  22 |     | <span class='neutral'>        // the 512 bit result. The result is stored in two 256</span>
+  23 |     | <span class='neutral'>        // variables such that product = prod1 * 2**256 + prod0</span>
+  24 | *   | <span class='executed'>        uint256 prod0; // Least significant 256 bits of the product</span>
+  25 | *   | <span class='executed'>        uint256 prod1; // Most significant 256 bits of the product</span>
+  26 | *   | <span class='executed'>        assembly {</span>
+  27 | *   | <span class='executed'>            let mm := mulmod(a, b, not(0))</span>
+  28 | *   | <span class='executed'>            prod0 := mul(a, b)</span>
+  29 | *   | <span class='executed'>            prod1 := sub(sub(mm, prod0), lt(mm, prod0))</span>
+  30 |     | <span class='neutral'>        }</span>
+  31 |     | <span class='neutral'></span>
+  32 |     | <span class='neutral'>        // Handle non-overflow cases, 256 by 256 division</span>
+  33 | *   | <span class='executed'>        if (prod1 == 0) {</span>
+  34 | *   | <span class='executed'>            require(denominator &gt; 0);</span>
+  35 |     | <span class='neutral'>            assembly {</span>
+  36 | *   | <span class='executed'>                result := div(prod0, denominator)</span>
+  37 |     | <span class='neutral'>            }</span>
+  38 | *   | <span class='executed'>            return result;</span>
+  39 |     | <span class='neutral'>        }</span>
+  40 |     | <span class='neutral'></span>
+  41 |     | <span class='neutral'>        // Make sure the result is less than 2**256.</span>
+  42 |     | <span class='neutral'>        // Also prevents denominator == 0</span>
+  43 | *   | <span class='executed'>        require(denominator &gt; prod1);</span>
+  44 |     | <span class='neutral'></span>
+  45 |     | <span class='neutral'>        ///////////////////////////////////////////////</span>
+  46 |     | <span class='neutral'>        // 512 by 256 division.</span>
+  47 |     | <span class='neutral'>        ///////////////////////////////////////////////</span>
+  48 |     | <span class='neutral'></span>
+  49 |     | <span class='neutral'>        // Make division exact by subtracting the remainder from [prod1 prod0]</span>
+  50 |     | <span class='neutral'>        // Compute remainder using mulmod</span>
+  51 | *   | <span class='executed'>        uint256 remainder;</span>
+  52 |     | <span class='neutral'>        assembly {</span>
+  53 | *   | <span class='executed'>            remainder := mulmod(a, b, denominator)</span>
+  54 |     | <span class='neutral'>        }</span>
+  55 |     | <span class='neutral'>        // Subtract 256 bit number from 512 bit number</span>
+  56 |     | <span class='neutral'>        assembly {</span>
+  57 | *   | <span class='executed'>            prod1 := sub(prod1, gt(remainder, prod0))</span>
+  58 | *   | <span class='executed'>            prod0 := sub(prod0, remainder)</span>
+  59 |     | <span class='neutral'>        }</span>
+  60 |     | <span class='neutral'></span>
+  61 |     | <span class='neutral'>        // Factor powers of two out of denominator</span>
+  62 |     | <span class='neutral'>        // Compute largest power of two divisor of denominator.</span>
+  63 |     | <span class='neutral'>        // Always &gt;= 1.</span>
+  64 | *   | <span class='executed'>        uint256 twos = -denominator &amp; denominator;</span>
+  65 |     | <span class='neutral'>        // Divide denominator by power of two</span>
+  66 |     | <span class='neutral'>        assembly {</span>
+  67 | *   | <span class='executed'>            denominator := div(denominator, twos)</span>
+  68 |     | <span class='neutral'>        }</span>
+  69 |     | <span class='neutral'></span>
+  70 |     | <span class='neutral'>        // Divide [prod1 prod0] by the factors of two</span>
+  71 |     | <span class='neutral'>        assembly {</span>
+  72 | *   | <span class='executed'>            prod0 := div(prod0, twos)</span>
+  73 |     | <span class='neutral'>        }</span>
+  74 |     | <span class='neutral'>        // Shift in bits from prod1 into prod0. For this we need</span>
+  75 |     | <span class='neutral'>        // to flip `twos` such that it is 2**256 / twos.</span>
+  76 |     | <span class='neutral'>        // If twos is zero, then it becomes one</span>
+  77 |     | <span class='neutral'>        assembly {</span>
+  78 | *   | <span class='executed'>            twos := add(div(sub(0, twos), twos), 1)</span>
+  79 |     | <span class='neutral'>        }</span>
+  80 | *   | <span class='executed'>        prod0 |= prod1 * twos;</span>
+  81 |     | <span class='neutral'></span>
+  82 |     | <span class='neutral'>        // Invert denominator mod 2**256</span>
+  83 |     | <span class='neutral'>        // Now that denominator is an odd number, it has an inverse</span>
+  84 |     | <span class='neutral'>        // modulo 2**256 such that denominator * inv = 1 mod 2**256.</span>
+  85 |     | <span class='neutral'>        // Compute the inverse by starting with a seed that is correct</span>
+  86 |     | <span class='neutral'>        // correct for four bits. That is, denominator * inv = 1 mod 2**4</span>
+  87 | *   | <span class='executed'>        uint256 inv = (3 * denominator) ^ 2;</span>
+  88 |     | <span class='neutral'>        // Now use Newton-Raphson iteration to improve the precision.</span>
+  89 |     | <span class='neutral'>        // Thanks to Hensel&#39;s lifting lemma, this also works in modular</span>
+  90 |     | <span class='neutral'>        // arithmetic, doubling the correct bits in each step.</span>
+  91 | *   | <span class='executed'>        inv *= 2 - denominator * inv; // inverse mod 2**8</span>
+  92 | *   | <span class='executed'>        inv *= 2 - denominator * inv; // inverse mod 2**16</span>
+  93 | *   | <span class='executed'>        inv *= 2 - denominator * inv; // inverse mod 2**32</span>
+  94 | *   | <span class='executed'>        inv *= 2 - denominator * inv; // inverse mod 2**64</span>
+  95 | *   | <span class='executed'>        inv *= 2 - denominator * inv; // inverse mod 2**128</span>
+  96 | *   | <span class='executed'>        inv *= 2 - denominator * inv; // inverse mod 2**256</span>
+  97 |     | <span class='neutral'></span>
+  98 |     | <span class='neutral'>        // Because the division is now exact we can divide by multiplying</span>
+  99 |     | <span class='neutral'>        // with the modular inverse of denominator. This will give us the</span>
+ 100 |     | <span class='neutral'>        // correct result modulo 2**256. Since the precoditions guarantee</span>
+ 101 |     | <span class='neutral'>        // that the outcome is less than 2**256, this is the final result.</span>
+ 102 |     | <span class='neutral'>        // We don&#39;t need to compute the high bits of the result and prod1</span>
+ 103 |     | <span class='neutral'>        // is no longer required.</span>
+ 104 | *   | <span class='executed'>        result = prod0 * inv;</span>
+ 105 | *   | <span class='executed'>        return result;</span>
+ 106 |     | <span class='neutral'>    }</span>
+ 107 |     | <span class='neutral'></span>
+ 108 |     | <span class='neutral'>    /// @notice Calculates ceil(a×b÷denominator) with full precision. Throws if result overflows a uint256 or denominator == 0</span>
+ 109 |     | <span class='neutral'>    /// @param a The multiplicand</span>
+ 110 |     | <span class='neutral'>    /// @param b The multiplier</span>
+ 111 |     | <span class='neutral'>    /// @param denominator The divisor</span>
+ 112 |     | <span class='neutral'>    /// @return result The 256-bit result</span>
+ 113 | *   | <span class='executed'>    function mulDivRoundingUp(</span>
+ 114 |     | <span class='neutral'>        uint256 a,</span>
+ 115 |     | <span class='neutral'>        uint256 b,</span>
+ 116 |     | <span class='neutral'>        uint256 denominator</span>
+ 117 | *   | <span class='executed'>    ) internal pure returns (uint256 result) {</span>
+ 118 | *   | <span class='executed'>        result = mulDiv(a, b, denominator);</span>
+ 119 | *   | <span class='executed'>        if (mulmod(a, b, denominator) &gt; 0) {</span>
+ 120 | *   | <span class='executed'>            require(result &lt; type(uint256).max);</span>
+ 121 | *   | <span class='executed'>            result++;</span>
+ 122 |     | <span class='neutral'>        }</span>
+ 123 |     | <span class='neutral'>    }</span>
+ 124 |     | <span class='neutral'>}</span>
+ 125 |     | <span class='neutral'></span>
+
+</code>
+<br />
+
+<b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/LowGasSafeMath.sol</b>
+<code>
+  1 |     | <span class='neutral'>// SPDX-License-Identifier: GPL-2.0-or-later</span>
+  2 |     | <span class='neutral'>pragma solidity &gt;=0.7.0;</span>
+  3 |     | <span class='neutral'></span>
+  4 |     | <span class='neutral'>/// @title Optimized overflow and underflow safe math operations</span>
+  5 |     | <span class='neutral'>/// @notice Contains methods for doing math operations that revert on overflow or underflow for minimal gas cost</span>
+  6 |     | <span class='unexecuted'>library LowGasSafeMath {</span>
+  7 |     | <span class='neutral'>    /// @notice Returns x + y, reverts if sum overflows uint256</span>
+  8 |     | <span class='neutral'>    /// @param x The augend</span>
+  9 |     | <span class='neutral'>    /// @param y The addend</span>
+ 10 |     | <span class='neutral'>    /// @return z The sum of x and y</span>
+ 11 | *   | <span class='executed'>    function add(uint256 x, uint256 y) internal pure returns (uint256 z) {</span>
+ 12 | *   | <span class='executed'>        require((z = x + y) &gt;= x);</span>
+ 13 |     | <span class='neutral'>    }</span>
+ 14 |     | <span class='neutral'></span>
+ 15 |     | <span class='neutral'>    /// @notice Returns x - y, reverts if underflows</span>
+ 16 |     | <span class='neutral'>    /// @param x The minuend</span>
+ 17 |     | <span class='neutral'>    /// @param y The subtrahend</span>
+ 18 |     | <span class='neutral'>    /// @return z The difference of x and y</span>
+ 19 |     | <span class='neutral'>    function sub(uint256 x, uint256 y) internal pure returns (uint256 z) {</span>
+ 20 |     | <span class='neutral'>        require((z = x - y) &lt;= x);</span>
+ 21 |     | <span class='neutral'>    }</span>
+ 22 |     | <span class='neutral'></span>
+ 23 |     | <span class='neutral'>    /// @notice Returns x * y, reverts if overflows</span>
+ 24 |     | <span class='neutral'>    /// @param x The multiplicand</span>
+ 25 |     | <span class='neutral'>    /// @param y The multiplier</span>
+ 26 |     | <span class='neutral'>    /// @return z The product of x and y</span>
+ 27 |     | <span class='neutral'>    function mul(uint256 x, uint256 y) internal pure returns (uint256 z) {</span>
+ 28 |     | <span class='neutral'>        require(x == 0 || (z = x * y) / x == y);</span>
+ 29 |     | <span class='neutral'>    }</span>
+ 30 |     | <span class='neutral'></span>
+ 31 |     | <span class='neutral'>    /// @notice Returns x + y, reverts if overflows or underflows</span>
+ 32 |     | <span class='neutral'>    /// @param x The augend</span>
+ 33 |     | <span class='neutral'>    /// @param y The addend</span>
+ 34 |     | <span class='neutral'>    /// @return z The sum of x and y</span>
+ 35 |     | <span class='neutral'>    function add(int256 x, int256 y) internal pure returns (int256 z) {</span>
+ 36 |     | <span class='neutral'>        require((z = x + y) &gt;= x == (y &gt;= 0));</span>
+ 37 |     | <span class='neutral'>    }</span>
+ 38 |     | <span class='neutral'></span>
+ 39 |     | <span class='neutral'>    /// @notice Returns x - y, reverts if overflows or underflows</span>
+ 40 |     | <span class='neutral'>    /// @param x The minuend</span>
+ 41 |     | <span class='neutral'>    /// @param y The subtrahend</span>
+ 42 |     | <span class='neutral'>    /// @return z The difference of x and y</span>
+ 43 |     | <span class='neutral'>    function sub(int256 x, int256 y) internal pure returns (int256 z) {</span>
+ 44 |     | <span class='neutral'>        require((z = x - y) &lt;= x == (y &gt;= 0));</span>
+ 45 |     | <span class='neutral'>    }</span>
+ 46 |     | <span class='neutral'>}</span>
+ 47 |     | <span class='neutral'></span>
+
+</code>
+<br />
+
+<b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/SafeCast.sol</b>
+<code>
+  1 |     | <span class='neutral'>// SPDX-License-Identifier: GPL-2.0-or-later</span>
+  2 |     | <span class='neutral'>pragma solidity &gt;=0.5.0;</span>
+  3 |     | <span class='neutral'></span>
+  4 |     | <span class='neutral'>/// @title Safe casting methods</span>
+  5 |     | <span class='neutral'>/// @notice Contains methods for safely casting between types</span>
+  6 |     | <span class='unexecuted'>library SafeCast {</span>
+  7 |     | <span class='neutral'>    /// @notice Cast a uint256 to a uint160, revert on overflow</span>
+  8 |     | <span class='neutral'>    /// @param y The uint256 to be downcasted</span>
+  9 |     | <span class='neutral'>    /// @return z The downcasted integer, now type uint160</span>
+ 10 | *   | <span class='executed'>    function toUint160(uint256 y) internal pure returns (uint160 z) {</span>
+ 11 | *   | <span class='executed'>        require((z = uint160(y)) == y);</span>
+ 12 |     | <span class='neutral'>    }</span>
+ 13 |     | <span class='neutral'></span>
+ 14 |     | <span class='neutral'>    /// @notice Cast a int256 to a int128, revert on overflow or underflow</span>
+ 15 |     | <span class='neutral'>    /// @param y The int256 to be downcasted</span>
+ 16 |     | <span class='neutral'>    /// @return z The downcasted integer, now type int128</span>
+ 17 |     | <span class='neutral'>    function toInt128(int256 y) internal pure returns (int128 z) {</span>
+ 18 |     | <span class='neutral'>        require((z = int128(y)) == y);</span>
+ 19 |     | <span class='neutral'>    }</span>
+ 20 |     | <span class='neutral'></span>
+ 21 |     | <span class='neutral'>    /// @notice Cast a uint256 to a int256, revert on overflow</span>
+ 22 |     | <span class='neutral'>    /// @param y The uint256 to be casted</span>
+ 23 |     | <span class='neutral'>    /// @return z The casted integer, now type int256</span>
+ 24 |     | <span class='neutral'>    function toInt256(uint256 y) internal pure returns (int256 z) {</span>
+ 25 |     | <span class='neutral'>        require(y &lt; 2**255);</span>
+ 26 |     | <span class='neutral'>        z = int256(y);</span>
+ 27 |     | <span class='neutral'>    }</span>
+ 28 |     | <span class='neutral'>}</span>
+ 29 |     | <span class='neutral'></span>
+
+</code>
+<br />
+
+<b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/SqrtPriceMath.sol</b>
+<code>
+   1 |     | <span class='neutral'>// SPDX-License-Identifier: BUSL-1.1</span>
+   2 |     | <span class='neutral'>pragma solidity &gt;=0.5.0;</span>
+   3 |     | <span class='neutral'></span>
+   4 |     | <span class='neutral'>import &#39;./LowGasSafeMath.sol&#39;;</span>
+   5 |     | <span class='neutral'>import &#39;./SafeCast.sol&#39;;</span>
+   6 |     | <span class='neutral'></span>
+   7 |     | <span class='neutral'>import &#39;./FullMath.sol&#39;;</span>
+   8 |     | <span class='neutral'>import &#39;./UnsafeMath.sol&#39;;</span>
+   9 |     | <span class='neutral'>import &#39;./FixedPoint96.sol&#39;;</span>
+  10 |     | <span class='neutral'></span>
+  11 |     | <span class='neutral'>/// @title Functions based on Q64.96 sqrt price and liquidity</span>
+  12 |     | <span class='neutral'>/// @notice Contains the math that uses square root of price as a Q64.96 and liquidity to compute deltas</span>
+  13 |     | <span class='unexecuted'>library SqrtPriceMath {</span>
+  14 |     | <span class='neutral'>    using LowGasSafeMath for uint256;</span>
+  15 |     | <span class='neutral'>    using SafeCast for uint256;</span>
+  16 |     | <span class='neutral'></span>
+  17 |     | <span class='neutral'>    /// @notice Gets the next sqrt price given a delta of token0</span>
+  18 |     | <span class='neutral'>    /// @dev Always rounds up, because in the exact output case (increasing price) we need to move the price at least</span>
+  19 |     | <span class='neutral'>    /// far enough to get the desired output amount, and in the exact input case (decreasing price) we need to move the</span>
+  20 |     | <span class='neutral'>    /// price less in order to not send too much output.</span>
+  21 |     | <span class='neutral'>    /// The most precise formula for this is liquidity * sqrtPX96 / (liquidity +- amount * sqrtPX96),</span>
+  22 |     | <span class='neutral'>    /// if this is impossible because of overflow, we calculate liquidity / (liquidity / sqrtPX96 +- amount).</span>
+  23 |     | <span class='neutral'>    /// @param sqrtPX96 The starting price, i.e. before accounting for the token0 delta</span>
+  24 |     | <span class='neutral'>    /// @param liquidity The amount of usable liquidity</span>
+  25 |     | <span class='neutral'>    /// @param amount How much of token0 to add or remove from virtual reserves</span>
+  26 |     | <span class='neutral'>    /// @param add Whether to add or remove the amount of token0</span>
+  27 |     | <span class='neutral'>    /// @return The price after adding or removing amount, depending on add</span>
+  28 | *   | <span class='executed'>    function getNextSqrtPriceFromAmount0RoundingUp(</span>
+  29 |     | <span class='neutral'>        uint160 sqrtPX96,</span>
+  30 |     | <span class='neutral'>        uint128 liquidity,</span>
+  31 |     | <span class='neutral'>        uint256 amount,</span>
+  32 |     | <span class='neutral'>        bool add</span>
+  33 | *   | <span class='executed'>    ) internal pure returns (uint160) {</span>
+  34 |     | <span class='neutral'>        // we short circuit amount == 0 because the result is otherwise not guaranteed to equal the input price</span>
+  35 | *   | <span class='executed'>        if (amount == 0) return sqrtPX96;</span>
+  36 | *   | <span class='executed'>        uint256 numerator1 = uint256(liquidity) &lt;&lt; FixedPoint96.RESOLUTION;</span>
+  37 |     | <span class='neutral'></span>
+  38 | *   | <span class='executed'>        if (add) {</span>
+  39 | *   | <span class='executed'>            uint256 product;</span>
+  40 | *   | <span class='executed'>            if ((product = amount * sqrtPX96) / amount == sqrtPX96) {</span>
+  41 | *   | <span class='executed'>                uint256 denominator = numerator1 + product;</span>
+  42 | *   | <span class='executed'>                if (denominator &gt;= numerator1)</span>
+  43 |     | <span class='neutral'>                    // always fits in 160 bits</span>
+  44 | *   | <span class='executed'>                    return uint160(FullMath.mulDivRoundingUp(numerator1, sqrtPX96, denominator));</span>
+  45 |     | <span class='neutral'>            }</span>
+  46 |     | <span class='neutral'></span>
+  47 | *   | <span class='executed'>            return uint160(UnsafeMath.divRoundingUp(numerator1, (numerator1 / sqrtPX96).add(amount)));</span>
+  48 |     | <span class='neutral'>        } else {</span>
+  49 | *   | <span class='executed'>            uint256 product;</span>
+  50 |     | <span class='neutral'>            // if the product overflows, we know the denominator underflows</span>
+  51 |     | <span class='neutral'>            // in addition, we must check that the denominator does not underflow</span>
+  52 | *   | <span class='executed'>            require((product = amount * sqrtPX96) / amount == sqrtPX96 &amp;&amp; numerator1 &gt; product);</span>
+  53 | *   | <span class='executed'>            uint256 denominator = numerator1 - product;</span>
+  54 | *   | <span class='executed'>            return FullMath.mulDivRoundingUp(numerator1, sqrtPX96, denominator).toUint160();</span>
+  55 |     | <span class='neutral'>        }</span>
+  56 |     | <span class='neutral'>    }</span>
+  57 |     | <span class='neutral'></span>
+  58 |     | <span class='neutral'>    /// @notice Gets the next sqrt price given a delta of token1</span>
+  59 |     | <span class='neutral'>    /// @dev Always rounds down, because in the exact output case (decreasing price) we need to move the price at least</span>
+  60 |     | <span class='neutral'>    /// far enough to get the desired output amount, and in the exact input case (increasing price) we need to move the</span>
+  61 |     | <span class='neutral'>    /// price less in order to not send too much output.</span>
+  62 |     | <span class='neutral'>    /// The formula we compute is within &lt;1 wei of the lossless version: sqrtPX96 +- amount / liquidity</span>
+  63 |     | <span class='neutral'>    /// @param sqrtPX96 The starting price, i.e., before accounting for the token1 delta</span>
+  64 |     | <span class='neutral'>    /// @param liquidity The amount of usable liquidity</span>
+  65 |     | <span class='neutral'>    /// @param amount How much of token1 to add, or remove, from virtual reserves</span>
+  66 |     | <span class='neutral'>    /// @param add Whether to add, or remove, the amount of token1</span>
+  67 |     | <span class='neutral'>    /// @return The price after adding or removing `amount`</span>
+  68 | *   | <span class='executed'>    function getNextSqrtPriceFromAmount1RoundingDown(</span>
+  69 |     | <span class='neutral'>        uint160 sqrtPX96,</span>
+  70 |     | <span class='neutral'>        uint128 liquidity,</span>
+  71 |     | <span class='neutral'>        uint256 amount,</span>
+  72 |     | <span class='neutral'>        bool add</span>
+  73 | *   | <span class='executed'>    ) internal pure returns (uint160) {</span>
+  74 |     | <span class='neutral'>        // if we&#39;re adding (subtracting), rounding down requires rounding the quotient down (up)</span>
+  75 |     | <span class='neutral'>        // in both cases, avoid a mulDiv for most inputs</span>
+  76 | *   | <span class='executed'>        if (add) {</span>
+  77 | *   | <span class='executed'>            uint256 quotient =</span>
+  78 |     | <span class='neutral'>                (</span>
+  79 | *   | <span class='executed'>                    amount &lt;= type(uint160).max</span>
+  80 | *   | <span class='executed'>                        ? (amount &lt;&lt; FixedPoint96.RESOLUTION) / liquidity</span>
+  81 | *   | <span class='executed'>                        : FullMath.mulDiv(amount, FixedPoint96.Q96, liquidity)</span>
+  82 |     | <span class='neutral'>                );</span>
+  83 |     | <span class='neutral'></span>
+  84 | *   | <span class='executed'>            return uint256(sqrtPX96).add(quotient).toUint160();</span>
+  85 |     | <span class='neutral'>        } else {</span>
+  86 | *   | <span class='executed'>            uint256 quotient =</span>
+  87 |     | <span class='neutral'>                (</span>
+  88 | *   | <span class='executed'>                    amount &lt;= type(uint160).max</span>
+  89 | *   | <span class='executed'>                        ? UnsafeMath.divRoundingUp(amount &lt;&lt; FixedPoint96.RESOLUTION, liquidity)</span>
+  90 | *   | <span class='executed'>                        : FullMath.mulDivRoundingUp(amount, FixedPoint96.Q96, liquidity)</span>
+  91 |     | <span class='neutral'>                );</span>
+  92 |     | <span class='neutral'></span>
+  93 | *   | <span class='executed'>            require(sqrtPX96 &gt; quotient);</span>
+  94 |     | <span class='neutral'>            // always fits 160 bits</span>
+  95 | *   | <span class='executed'>            return uint160(sqrtPX96 - quotient);</span>
+  96 |     | <span class='neutral'>        }</span>
+  97 |     | <span class='neutral'>    }</span>
+  98 |     | <span class='neutral'></span>
+  99 |     | <span class='neutral'>    /// @notice Gets the next sqrt price given an input amount of token0 or token1</span>
+ 100 |     | <span class='neutral'>    /// @dev Throws if price or liquidity are 0, or if the next price is out of bounds</span>
+ 101 |     | <span class='neutral'>    /// @param sqrtPX96 The starting price, i.e., before accounting for the input amount</span>
+ 102 |     | <span class='neutral'>    /// @param liquidity The amount of usable liquidity</span>
+ 103 |     | <span class='neutral'>    /// @param amountIn How much of token0, or token1, is being swapped in</span>
+ 104 |     | <span class='neutral'>    /// @param zeroForOne Whether the amount in is token0 or token1</span>
+ 105 |     | <span class='neutral'>    /// @return sqrtQX96 The price after adding the input amount to token0 or token1</span>
+ 106 | *   | <span class='executed'>    function getNextSqrtPriceFromInput(</span>
+ 107 |     | <span class='neutral'>        uint160 sqrtPX96,</span>
+ 108 |     | <span class='neutral'>        uint128 liquidity,</span>
+ 109 |     | <span class='neutral'>        uint256 amountIn,</span>
+ 110 |     | <span class='neutral'>        bool zeroForOne</span>
+ 111 | *   | <span class='executed'>    ) internal pure returns (uint160 sqrtQX96) {</span>
+ 112 | *   | <span class='executed'>        require(sqrtPX96 &gt; 0);</span>
+ 113 | *   | <span class='executed'>        require(liquidity &gt; 0);</span>
+ 114 |     | <span class='neutral'></span>
+ 115 |     | <span class='neutral'>        // round to make sure that we don&#39;t pass the target price</span>
+ 116 | *   | <span class='executed'>        return</span>
+ 117 | *   | <span class='executed'>            zeroForOne</span>
+ 118 | *   | <span class='executed'>                ? getNextSqrtPriceFromAmount0RoundingUp(sqrtPX96, liquidity, amountIn, true)</span>
+ 119 | *   | <span class='executed'>                : getNextSqrtPriceFromAmount1RoundingDown(sqrtPX96, liquidity, amountIn, true);</span>
+ 120 |     | <span class='neutral'>    }</span>
+ 121 |     | <span class='neutral'></span>
+ 122 |     | <span class='neutral'>    /// @notice Gets the next sqrt price given an output amount of token0 or token1</span>
+ 123 |     | <span class='neutral'>    /// @dev Throws if price or liquidity are 0 or the next price is out of bounds</span>
+ 124 |     | <span class='neutral'>    /// @param sqrtPX96 The starting price before accounting for the output amount</span>
+ 125 |     | <span class='neutral'>    /// @param liquidity The amount of usable liquidity</span>
+ 126 |     | <span class='neutral'>    /// @param amountOut How much of token0, or token1, is being swapped out</span>
+ 127 |     | <span class='neutral'>    /// @param zeroForOne Whether the amount out is token0 or token1</span>
+ 128 |     | <span class='neutral'>    /// @return sqrtQX96 The price after removing the output amount of token0 or token1</span>
+ 129 | *   | <span class='executed'>    function getNextSqrtPriceFromOutput(</span>
+ 130 |     | <span class='neutral'>        uint160 sqrtPX96,</span>
+ 131 |     | <span class='neutral'>        uint128 liquidity,</span>
+ 132 |     | <span class='neutral'>        uint256 amountOut,</span>
+ 133 |     | <span class='neutral'>        bool zeroForOne</span>
+ 134 | *   | <span class='executed'>    ) internal pure returns (uint160 sqrtQX96) {</span>
+ 135 | *   | <span class='executed'>        require(sqrtPX96 &gt; 0);</span>
+ 136 | *   | <span class='executed'>        require(liquidity &gt; 0);</span>
+ 137 |     | <span class='neutral'></span>
+ 138 |     | <span class='neutral'>        // round to make sure that we pass the target price</span>
+ 139 | *   | <span class='executed'>        return</span>
+ 140 | *   | <span class='executed'>            zeroForOne</span>
+ 141 | *   | <span class='executed'>                ? getNextSqrtPriceFromAmount1RoundingDown(sqrtPX96, liquidity, amountOut, false)</span>
+ 142 | *   | <span class='executed'>                : getNextSqrtPriceFromAmount0RoundingUp(sqrtPX96, liquidity, amountOut, false);</span>
+ 143 |     | <span class='neutral'>    }</span>
+ 144 |     | <span class='neutral'></span>
+ 145 |     | <span class='neutral'>    /// @notice Gets the amount0 delta between two prices</span>
+ 146 |     | <span class='neutral'>    /// @dev Calculates liquidity / sqrt(lower) - liquidity / sqrt(upper),</span>
+ 147 |     | <span class='neutral'>    /// i.e. liquidity * (sqrt(upper) - sqrt(lower)) / (sqrt(upper) * sqrt(lower))</span>
+ 148 |     | <span class='neutral'>    /// @param sqrtRatioAX96 A sqrt price</span>
+ 149 |     | <span class='neutral'>    /// @param sqrtRatioBX96 Another sqrt price</span>
+ 150 |     | <span class='neutral'>    /// @param liquidity The amount of usable liquidity</span>
+ 151 |     | <span class='neutral'>    /// @param roundUp Whether to round the amount up or down</span>
+ 152 |     | <span class='neutral'>    /// @return amount0 Amount of token0 required to cover a position of size liquidity between the two passed prices</span>
+ 153 | *   | <span class='executed'>    function getAmount0Delta(</span>
+ 154 |     | <span class='neutral'>        uint160 sqrtRatioAX96,</span>
+ 155 |     | <span class='neutral'>        uint160 sqrtRatioBX96,</span>
+ 156 |     | <span class='neutral'>        uint128 liquidity,</span>
+ 157 |     | <span class='neutral'>        bool roundUp</span>
+ 158 | *   | <span class='executed'>    ) internal pure returns (uint256 amount0) {</span>
+ 159 | *   | <span class='executed'>        if (sqrtRatioAX96 &gt; sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);</span>
+ 160 |     | <span class='neutral'></span>
+ 161 | *   | <span class='executed'>        uint256 numerator1 = uint256(liquidity) &lt;&lt; FixedPoint96.RESOLUTION;</span>
+ 162 | *   | <span class='executed'>        uint256 numerator2 = sqrtRatioBX96 - sqrtRatioAX96;</span>
+ 163 |     | <span class='neutral'></span>
+ 164 | *   | <span class='executed'>        require(sqrtRatioAX96 &gt; 0);</span>
+ 165 |     | <span class='neutral'></span>
+ 166 | *   | <span class='executed'>        return</span>
+ 167 | *   | <span class='executed'>            roundUp</span>
+ 168 | *   | <span class='executed'>                ? UnsafeMath.divRoundingUp(</span>
+ 169 | *   | <span class='executed'>                    FullMath.mulDivRoundingUp(numerator1, numerator2, sqrtRatioBX96),</span>
+ 170 | *   | <span class='executed'>                    sqrtRatioAX96</span>
+ 171 |     | <span class='neutral'>                )</span>
+ 172 | *   | <span class='executed'>                : FullMath.mulDiv(numerator1, numerator2, sqrtRatioBX96) / sqrtRatioAX96;</span>
+ 173 |     | <span class='neutral'>    }</span>
+ 174 |     | <span class='neutral'></span>
+ 175 |     | <span class='neutral'>    /// @notice Gets the amount1 delta between two prices</span>
+ 176 |     | <span class='neutral'>    /// @dev Calculates liquidity * (sqrt(upper) - sqrt(lower))</span>
+ 177 |     | <span class='neutral'>    /// @param sqrtRatioAX96 A sqrt price</span>
+ 178 |     | <span class='neutral'>    /// @param sqrtRatioBX96 Another sqrt price</span>
+ 179 |     | <span class='neutral'>    /// @param liquidity The amount of usable liquidity</span>
+ 180 |     | <span class='neutral'>    /// @param roundUp Whether to round the amount up, or down</span>
+ 181 |     | <span class='neutral'>    /// @return amount1 Amount of token1 required to cover a position of size liquidity between the two passed prices</span>
+ 182 | *   | <span class='executed'>    function getAmount1Delta(</span>
+ 183 |     | <span class='neutral'>        uint160 sqrtRatioAX96,</span>
+ 184 |     | <span class='neutral'>        uint160 sqrtRatioBX96,</span>
+ 185 |     | <span class='neutral'>        uint128 liquidity,</span>
+ 186 |     | <span class='neutral'>        bool roundUp</span>
+ 187 | *   | <span class='executed'>    ) internal pure returns (uint256 amount1) {</span>
+ 188 | *   | <span class='executed'>        if (sqrtRatioAX96 &gt; sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);</span>
+ 189 |     | <span class='neutral'></span>
+ 190 | *   | <span class='executed'>        return</span>
+ 191 | *   | <span class='executed'>            roundUp</span>
+ 192 | *   | <span class='executed'>                ? FullMath.mulDivRoundingUp(liquidity, sqrtRatioBX96 - sqrtRatioAX96, FixedPoint96.Q96)</span>
+ 193 | *   | <span class='executed'>                : FullMath.mulDiv(liquidity, sqrtRatioBX96 - sqrtRatioAX96, FixedPoint96.Q96);</span>
+ 194 |     | <span class='neutral'>    }</span>
+ 195 |     | <span class='neutral'></span>
+ 196 |     | <span class='neutral'>    /// @notice Helper that gets signed token0 delta</span>
+ 197 |     | <span class='neutral'>    /// @param sqrtRatioAX96 A sqrt price</span>
+ 198 |     | <span class='neutral'>    /// @param sqrtRatioBX96 Another sqrt price</span>
+ 199 |     | <span class='neutral'>    /// @param liquidity The change in liquidity for which to compute the amount0 delta</span>
+ 200 |     | <span class='neutral'>    /// @return amount0 Amount of token0 corresponding to the passed liquidityDelta between the two prices</span>
+ 201 |     | <span class='neutral'>    function getAmount0Delta(</span>
+ 202 |     | <span class='neutral'>        uint160 sqrtRatioAX96,</span>
+ 203 |     | <span class='neutral'>        uint160 sqrtRatioBX96,</span>
+ 204 |     | <span class='neutral'>        int128 liquidity</span>
+ 205 |     | <span class='neutral'>    ) internal pure returns (int256 amount0) {</span>
+ 206 |     | <span class='neutral'>        return</span>
+ 207 |     | <span class='neutral'>            liquidity &lt; 0</span>
+ 208 |     | <span class='neutral'>                ? -getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, uint128(-liquidity), false).toInt256()</span>
+ 209 |     | <span class='neutral'>                : getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, uint128(liquidity), true).toInt256();</span>
+ 210 |     | <span class='neutral'>    }</span>
+ 211 |     | <span class='neutral'></span>
+ 212 |     | <span class='neutral'>    /// @notice Helper that gets signed token1 delta</span>
+ 213 |     | <span class='neutral'>    /// @param sqrtRatioAX96 A sqrt price</span>
+ 214 |     | <span class='neutral'>    /// @param sqrtRatioBX96 Another sqrt price</span>
+ 215 |     | <span class='neutral'>    /// @param liquidity The change in liquidity for which to compute the amount1 delta</span>
+ 216 |     | <span class='neutral'>    /// @return amount1 Amount of token1 corresponding to the passed liquidityDelta between the two prices</span>
+ 217 |     | <span class='neutral'>    function getAmount1Delta(</span>
+ 218 |     | <span class='neutral'>        uint160 sqrtRatioAX96,</span>
+ 219 |     | <span class='neutral'>        uint160 sqrtRatioBX96,</span>
+ 220 |     | <span class='neutral'>        int128 liquidity</span>
+ 221 |     | <span class='neutral'>    ) internal pure returns (int256 amount1) {</span>
+ 222 |     | <span class='neutral'>        return</span>
+ 223 |     | <span class='neutral'>            liquidity &lt; 0</span>
+ 224 |     | <span class='neutral'>                ? -getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, uint128(-liquidity), false).toInt256()</span>
+ 225 |     | <span class='neutral'>                : getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, uint128(liquidity), true).toInt256();</span>
+ 226 |     | <span class='neutral'>    }</span>
+ 227 |     | <span class='neutral'>}</span>
+ 228 |     | <span class='neutral'></span>
+
+</code>
+<br />
+
+<b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/SwapMath.sol</b>
+<code>
+   1 |     | <span class='neutral'>// SPDX-License-Identifier: BUSL-1.1</span>
+   2 |     | <span class='neutral'>pragma solidity &gt;=0.5.0;</span>
+   3 |     | <span class='neutral'></span>
+   4 |     | <span class='neutral'>import &#39;./FullMath.sol&#39;;</span>
+   5 |     | <span class='neutral'>import &#39;./SqrtPriceMath.sol&#39;;</span>
+   6 |     | <span class='neutral'></span>
+   7 |     | <span class='neutral'>/// @title Computes the result of a swap within ticks</span>
+   8 |     | <span class='neutral'>/// @notice Contains methods for computing the result of a swap within a single tick price range, i.e., a single tick.</span>
+   9 |     | <span class='unexecuted'>library SwapMath {</span>
+  10 |     | <span class='neutral'>    /// @notice Computes the result of swapping some amount in, or amount out, given the parameters of the swap</span>
+  11 |     | <span class='neutral'>    /// @dev The fee, plus the amount in, will never exceed the amount remaining if the swap&#39;s `amountSpecified` is positive</span>
+  12 |     | <span class='neutral'>    /// @param sqrtRatioCurrentX96 The current sqrt price of the pool</span>
+  13 |     | <span class='neutral'>    /// @param sqrtRatioTargetX96 The price that cannot be exceeded, from which the direction of the swap is inferred</span>
+  14 |     | <span class='neutral'>    /// @param liquidity The usable liquidity</span>
+  15 |     | <span class='neutral'>    /// @param amountRemaining How much input or output amount is remaining to be swapped in/out</span>
+  16 |     | <span class='neutral'>    /// @param feePips The fee taken from the input amount, expressed in hundredths of a bip</span>
+  17 |     | <span class='neutral'>    /// @return sqrtRatioNextX96 The price after swapping the amount in/out, not to exceed the price target</span>
+  18 |     | <span class='neutral'>    /// @return amountIn The amount to be swapped in, of either token0 or token1, based on the direction of the swap</span>
+  19 |     | <span class='neutral'>    /// @return amountOut The amount to be received, of either token0 or token1, based on the direction of the swap</span>
+  20 |     | <span class='neutral'>    /// @return feeAmount The amount of input that will be taken as a fee</span>
+  21 | *   | <span class='executed'>    function computeSwapStep(</span>
+  22 |     | <span class='neutral'>        uint160 sqrtRatioCurrentX96,</span>
+  23 |     | <span class='neutral'>        uint160 sqrtRatioTargetX96,</span>
+  24 |     | <span class='neutral'>        uint128 liquidity,</span>
+  25 |     | <span class='neutral'>        int256 amountRemaining,</span>
+  26 |     | <span class='neutral'>        uint24 feePips</span>
+  27 |     | <span class='neutral'>    )</span>
+  28 |     | <span class='neutral'>        internal</span>
+  29 |     | <span class='neutral'>        pure</span>
+  30 |     | <span class='neutral'>        returns (</span>
+  31 | *   | <span class='executed'>            uint160 sqrtRatioNextX96,</span>
+  32 | *   | <span class='executed'>            uint256 amountIn,</span>
+  33 | *   | <span class='executed'>            uint256 amountOut,</span>
+  34 | *   | <span class='executed'>            uint256 feeAmount</span>
+  35 |     | <span class='neutral'>        )</span>
+  36 |     | <span class='neutral'>    {</span>
+  37 | *   | <span class='executed'>        bool zeroForOne = sqrtRatioCurrentX96 &gt;= sqrtRatioTargetX96;</span>
+  38 | *   | <span class='executed'>        bool exactIn = amountRemaining &gt;= 0;</span>
+  39 |     | <span class='neutral'></span>
+  40 | *   | <span class='executed'>        if (exactIn) {</span>
+  41 | *   | <span class='executed'>            uint256 amountRemainingLessFee = FullMath.mulDiv(uint256(amountRemaining), 1e6 - feePips, 1e6);</span>
+  42 | *   | <span class='executed'>            amountIn = zeroForOne</span>
+  43 | *   | <span class='executed'>                ? SqrtPriceMath.getAmount0Delta(sqrtRatioTargetX96, sqrtRatioCurrentX96, liquidity, true)</span>
+  44 | *   | <span class='executed'>                : SqrtPriceMath.getAmount1Delta(sqrtRatioCurrentX96, sqrtRatioTargetX96, liquidity, true);</span>
+  45 | *   | <span class='executed'>            if (amountRemainingLessFee &gt;= amountIn) sqrtRatioNextX96 = sqrtRatioTargetX96;</span>
+  46 |     | <span class='neutral'>            else</span>
+  47 | *   | <span class='executed'>                sqrtRatioNextX96 = SqrtPriceMath.getNextSqrtPriceFromInput(</span>
+  48 | *   | <span class='executed'>                    sqrtRatioCurrentX96,</span>
+  49 | *   | <span class='executed'>                    liquidity,</span>
+  50 | *   | <span class='executed'>                    amountRemainingLessFee,</span>
+  51 | *   | <span class='executed'>                    zeroForOne</span>
+  52 |     | <span class='neutral'>                );</span>
+  53 |     | <span class='neutral'>        } else {</span>
+  54 | *   | <span class='executed'>            amountOut = zeroForOne</span>
+  55 | *   | <span class='executed'>                ? SqrtPriceMath.getAmount1Delta(sqrtRatioTargetX96, sqrtRatioCurrentX96, liquidity, false)</span>
+  56 | *   | <span class='executed'>                : SqrtPriceMath.getAmount0Delta(sqrtRatioCurrentX96, sqrtRatioTargetX96, liquidity, false);</span>
+  57 | *   | <span class='executed'>            if (uint256(-amountRemaining) &gt;= amountOut) sqrtRatioNextX96 = sqrtRatioTargetX96;</span>
+  58 |     | <span class='neutral'>            else</span>
+  59 | *   | <span class='executed'>                sqrtRatioNextX96 = SqrtPriceMath.getNextSqrtPriceFromOutput(</span>
+  60 | *   | <span class='executed'>                    sqrtRatioCurrentX96,</span>
+  61 | *   | <span class='executed'>                    liquidity,</span>
+  62 | *   | <span class='executed'>                    uint256(-amountRemaining),</span>
+  63 | *   | <span class='executed'>                    zeroForOne</span>
+  64 |     | <span class='neutral'>                );</span>
+  65 |     | <span class='neutral'>        }</span>
+  66 |     | <span class='neutral'></span>
+  67 | *   | <span class='executed'>        bool max = sqrtRatioTargetX96 == sqrtRatioNextX96;</span>
+  68 |     | <span class='neutral'></span>
+  69 |     | <span class='neutral'>        // get the input/output amounts</span>
+  70 | *   | <span class='executed'>        if (zeroForOne) {</span>
+  71 | *   | <span class='executed'>            amountIn = max &amp;&amp; exactIn</span>
+  72 | *   | <span class='executed'>                ? amountIn</span>
+  73 | *   | <span class='executed'>                : SqrtPriceMath.getAmount0Delta(sqrtRatioNextX96, sqrtRatioCurrentX96, liquidity, true);</span>
+  74 | *   | <span class='executed'>            amountOut = max &amp;&amp; !exactIn</span>
+  75 | *   | <span class='executed'>                ? amountOut</span>
+  76 | *   | <span class='executed'>                : SqrtPriceMath.getAmount1Delta(sqrtRatioNextX96, sqrtRatioCurrentX96, liquidity, false);</span>
+  77 |     | <span class='neutral'>        } else {</span>
+  78 | *   | <span class='executed'>            amountIn = max &amp;&amp; exactIn</span>
+  79 | *   | <span class='executed'>                ? amountIn</span>
+  80 | *   | <span class='executed'>                : SqrtPriceMath.getAmount1Delta(sqrtRatioCurrentX96, sqrtRatioNextX96, liquidity, true);</span>
+  81 | *   | <span class='executed'>            amountOut = max &amp;&amp; !exactIn</span>
+  82 | *   | <span class='executed'>                ? amountOut</span>
+  83 | *   | <span class='executed'>                : SqrtPriceMath.getAmount0Delta(sqrtRatioCurrentX96, sqrtRatioNextX96, liquidity, false);</span>
+  84 |     | <span class='neutral'>        }</span>
+  85 |     | <span class='neutral'></span>
+  86 |     | <span class='neutral'>        // cap the output amount to not exceed the remaining output amount</span>
+  87 | *   | <span class='executed'>        if (!exactIn &amp;&amp; amountOut &gt; uint256(-amountRemaining)) {</span>
+  88 | *   | <span class='executed'>            amountOut = uint256(-amountRemaining);</span>
+  89 |     | <span class='neutral'>        }</span>
+  90 |     | <span class='neutral'></span>
+  91 | *   | <span class='executed'>        if (exactIn &amp;&amp; sqrtRatioNextX96 != sqrtRatioTargetX96) {</span>
+  92 |     | <span class='neutral'>            // we didn&#39;t reach the target, so take the remainder of the maximum input as fee</span>
+  93 | *   | <span class='executed'>            feeAmount = uint256(amountRemaining) - amountIn;</span>
+  94 |     | <span class='neutral'>        } else {</span>
+  95 | *   | <span class='executed'>            feeAmount = FullMath.mulDivRoundingUp(amountIn, feePips, 1e6 - feePips);</span>
+  96 |     | <span class='neutral'>        }</span>
+  97 |     | <span class='neutral'>    }</span>
+  98 |     | <span class='neutral'>}</span>
+  99 |     | <span class='neutral'></span>
+
+</code>
+<br />
+
+<b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/UnsafeMath.sol</b>
+<code>
+  1 |     | <span class='neutral'>// SPDX-License-Identifier: GPL-2.0-or-later</span>
+  2 |     | <span class='neutral'>pragma solidity &gt;=0.5.0;</span>
+  3 |     | <span class='neutral'></span>
+  4 |     | <span class='neutral'>/// @title Math functions that do not check inputs or outputs</span>
+  5 |     | <span class='neutral'>/// @notice Contains methods that perform common math functions but do not do any overflow or underflow checks</span>
+  6 |     | <span class='unexecuted'>library UnsafeMath {</span>
+  7 |     | <span class='neutral'>    /// @notice Returns ceil(x / y)</span>
+  8 |     | <span class='neutral'>    /// @dev division by 0 has unspecified behavior, and must be checked externally</span>
+  9 |     | <span class='neutral'>    /// @param x The dividend</span>
+ 10 |     | <span class='neutral'>    /// @param y The divisor</span>
+ 11 |     | <span class='neutral'>    /// @return z The quotient, ceil(x / y)</span>
+ 12 | *   | <span class='executed'>    function divRoundingUp(uint256 x, uint256 y) internal pure returns (uint256 z) {</span>
+ 13 | *   | <span class='executed'>        assembly {</span>
+ 14 | *   | <span class='executed'>            z := add(div(x, y), gt(mod(x, y), 0))</span>
+ 15 |     | <span class='neutral'>        }</span>
+ 16 |     | <span class='neutral'>    }</span>
+ 17 |     | <span class='neutral'>}</span>
+ 18 |     | <span class='neutral'></span>
+
+</code>
+<br />
+
+<b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/test/SwapMathEchidnaTest.sol</b>
+<code>
+  1 |     | <span class='neutral'>// SPDX-License-Identifier: UNLICENSED</span>
+  2 |     | <span class='neutral'>pragma solidity =0.7.6;</span>
+  3 |     | <span class='neutral'></span>
+  4 |     | <span class='neutral'>import &#39;../libraries/SwapMath.sol&#39;;</span>
+  5 |     | <span class='neutral'></span>
+  6 | *   | <span class='executed'>contract SwapMathEchidnaTest {</span>
+  7 | *   | <span class='executed'>    function checkComputeSwapStepInvariants(</span>
+  8 |     | <span class='neutral'>        uint160 sqrtPriceRaw,</span>
+  9 |     | <span class='neutral'>        uint160 sqrtPriceTargetRaw,</span>
+ 10 |     | <span class='neutral'>        uint128 liquidity,</span>
+ 11 |     | <span class='neutral'>        int256 amountRemaining,</span>
+ 12 |     | <span class='neutral'>        uint24 feePips</span>
+ 13 |     | <span class='neutral'>    ) external pure {</span>
+ 14 | *   | <span class='executed'>        require(sqrtPriceRaw &gt; 0);</span>
+ 15 | *   | <span class='executed'>        require(sqrtPriceTargetRaw &gt; 0);</span>
+ 16 | *   | <span class='executed'>        require(feePips &gt; 0);</span>
+ 17 | *   | <span class='executed'>        require(feePips &lt; 1e6);</span>
+ 18 |     | <span class='neutral'></span>
+ 19 | *   | <span class='executed'>        (uint160 sqrtQ, uint256 amountIn, uint256 amountOut, uint256 feeAmount) =</span>
+ 20 | *   | <span class='executed'>            SwapMath.computeSwapStep(sqrtPriceRaw, sqrtPriceTargetRaw, liquidity, amountRemaining, feePips);</span>
+ 21 |     | <span class='neutral'></span>
+ 22 | *   | <span class='executed'>        assert(amountIn &lt;= type(uint256).max - feeAmount);</span>
+ 23 |     | <span class='neutral'></span>
+ 24 | *   | <span class='executed'>        if (amountRemaining &lt; 0) {</span>
+ 25 | *   | <span class='executed'>            assert(amountOut &lt;= uint256(-amountRemaining));</span>
+ 26 |     | <span class='neutral'>        } else {</span>
+ 27 | *   | <span class='executed'>            assert(amountIn + feeAmount &lt;= uint256(amountRemaining));</span>
+ 28 |     | <span class='neutral'>        }</span>
+ 29 |     | <span class='neutral'></span>
+ 30 | *   | <span class='executed'>        if (sqrtPriceRaw == sqrtPriceTargetRaw) {</span>
+ 31 | *   | <span class='executed'>            assert(amountIn == 0);</span>
+ 32 | *   | <span class='executed'>            assert(amountOut == 0);</span>
+ 33 | *   | <span class='executed'>            assert(feeAmount == 0);</span>
+ 34 | *   | <span class='executed'>            assert(sqrtQ == sqrtPriceTargetRaw);</span>
+ 35 |     | <span class='neutral'>        }</span>
+ 36 |     | <span class='neutral'></span>
+ 37 |     | <span class='neutral'>        // didn&#39;t reach price target, entire amount must be consumed</span>
+ 38 | *   | <span class='executed'>        if (sqrtQ != sqrtPriceTargetRaw) {</span>
+ 39 | *   | <span class='executed'>            if (amountRemaining &lt; 0) assert(amountOut == uint256(-amountRemaining));</span>
+ 40 | *   | <span class='executed'>            else assert(amountIn + feeAmount == uint256(amountRemaining));</span>
+ 41 |     | <span class='neutral'>        }</span>
+ 42 |     | <span class='neutral'></span>
+ 43 |     | <span class='neutral'>        // next price is between price and price target</span>
+ 44 | *   | <span class='executed'>        if (sqrtPriceTargetRaw &lt;= sqrtPriceRaw) {</span>
+ 45 | *   | <span class='executed'>            assert(sqrtQ &lt;= sqrtPriceRaw);</span>
+ 46 | *   | <span class='executed'>            assert(sqrtQ &gt;= sqrtPriceTargetRaw);</span>
+ 47 |     | <span class='neutral'>        } else {</span>
+ 48 | *   | <span class='executed'>            assert(sqrtQ &gt;= sqrtPriceRaw);</span>
+ 49 | *   | <span class='executed'>            assert(sqrtQ &lt;= sqrtPriceTargetRaw);</span>
+ 50 |     | <span class='neutral'>        }</span>
+ 51 |     | <span class='neutral'>    }</span>
+ 52 |     | <span class='neutral'>}</span>
+ 53 |     | <span class='neutral'></span>
+
+</code>
+<br />
+
