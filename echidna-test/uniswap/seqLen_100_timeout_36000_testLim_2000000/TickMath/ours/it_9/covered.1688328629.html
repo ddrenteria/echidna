@@ -1,0 +1,241 @@
+<style> code { white-space: pre-wrap; display: block; background-color: #eee; }.executed { background-color: #afa; }.reverted { background-color: #ffa; }.unexecuted { background-color: #faa; }.neutral { background-color: #eee; }</style><b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/TickMath.sol</b>
+<code>
+   1 |     | <span class='neutral'>// SPDX-License-Identifier: GPL-2.0-or-later</span>
+   2 |     | <span class='neutral'>pragma solidity &gt;=0.5.0 &lt;0.8.0;</span>
+   3 |     | <span class='neutral'></span>
+   4 |     | <span class='neutral'>/// @title Math library for computing sqrt prices from ticks and vice versa</span>
+   5 |     | <span class='neutral'>/// @notice Computes sqrt price for ticks of size 1.0001, i.e. sqrt(1.0001^tick) as fixed point Q64.96 numbers. Supports</span>
+   6 |     | <span class='neutral'>/// prices between 2**-128 and 2**128</span>
+   7 |     | <span class='unexecuted'>library TickMath {</span>
+   8 |     | <span class='neutral'>    /// @dev The minimum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**-128</span>
+   9 | *   | <span class='executed'>    int24 internal constant MIN_TICK = -887272;</span>
+  10 |     | <span class='neutral'>    /// @dev The maximum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**128</span>
+  11 | *   | <span class='executed'>    int24 internal constant MAX_TICK = -MIN_TICK;</span>
+  12 |     | <span class='neutral'></span>
+  13 |     | <span class='neutral'>    /// @dev The minimum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MIN_TICK)</span>
+  14 | *   | <span class='executed'>    uint160 internal constant MIN_SQRT_RATIO = 4295128739;</span>
+  15 |     | <span class='neutral'>    /// @dev The maximum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MAX_TICK)</span>
+  16 | *   | <span class='executed'>    uint160 internal constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;</span>
+  17 |     | <span class='neutral'></span>
+  18 |     | <span class='neutral'>    /// @notice Calculates sqrt(1.0001^tick) * 2^96</span>
+  19 |     | <span class='neutral'>    /// @dev Throws if |tick| &gt; max tick</span>
+  20 |     | <span class='neutral'>    /// @param tick The input tick for the above formula</span>
+  21 |     | <span class='neutral'>    /// @return sqrtPriceX96 A Fixed point Q64.96 number representing the sqrt of the ratio of the two assets (token1/token0)</span>
+  22 |     | <span class='neutral'>    /// at the given tick</span>
+  23 | *   | <span class='executed'>    function getSqrtRatioAtTick(int24 tick) internal pure returns (uint160 sqrtPriceX96) {</span>
+  24 | *   | <span class='executed'>        uint256 absTick = tick &lt; 0 ? uint256(-int256(tick)) : uint256(int256(tick));</span>
+  25 | *   | <span class='executed'>        require(absTick &lt;= uint256(MAX_TICK), &#39;T&#39;);</span>
+  26 |     | <span class='neutral'></span>
+  27 | *   | <span class='executed'>        uint256 ratio = absTick &amp; 0x1 != 0 ? 0xfffcb933bd6fad37aa2d162d1a594001 : 0x100000000000000000000000000000000;</span>
+  28 | *   | <span class='executed'>        if (absTick &amp; 0x2 != 0) ratio = (ratio * 0xfff97272373d413259a46990580e213a) &gt;&gt; 128;</span>
+  29 | *   | <span class='executed'>        if (absTick &amp; 0x4 != 0) ratio = (ratio * 0xfff2e50f5f656932ef12357cf3c7fdcc) &gt;&gt; 128;</span>
+  30 | *   | <span class='executed'>        if (absTick &amp; 0x8 != 0) ratio = (ratio * 0xffe5caca7e10e4e61c3624eaa0941cd0) &gt;&gt; 128;</span>
+  31 | *   | <span class='executed'>        if (absTick &amp; 0x10 != 0) ratio = (ratio * 0xffcb9843d60f6159c9db58835c926644) &gt;&gt; 128;</span>
+  32 | *   | <span class='executed'>        if (absTick &amp; 0x20 != 0) ratio = (ratio * 0xff973b41fa98c081472e6896dfb254c0) &gt;&gt; 128;</span>
+  33 | *   | <span class='executed'>        if (absTick &amp; 0x40 != 0) ratio = (ratio * 0xff2ea16466c96a3843ec78b326b52861) &gt;&gt; 128;</span>
+  34 | *   | <span class='executed'>        if (absTick &amp; 0x80 != 0) ratio = (ratio * 0xfe5dee046a99a2a811c461f1969c3053) &gt;&gt; 128;</span>
+  35 | *   | <span class='executed'>        if (absTick &amp; 0x100 != 0) ratio = (ratio * 0xfcbe86c7900a88aedcffc83b479aa3a4) &gt;&gt; 128;</span>
+  36 | *   | <span class='executed'>        if (absTick &amp; 0x200 != 0) ratio = (ratio * 0xf987a7253ac413176f2b074cf7815e54) &gt;&gt; 128;</span>
+  37 | *   | <span class='executed'>        if (absTick &amp; 0x400 != 0) ratio = (ratio * 0xf3392b0822b70005940c7a398e4b70f3) &gt;&gt; 128;</span>
+  38 | *   | <span class='executed'>        if (absTick &amp; 0x800 != 0) ratio = (ratio * 0xe7159475a2c29b7443b29c7fa6e889d9) &gt;&gt; 128;</span>
+  39 | *   | <span class='executed'>        if (absTick &amp; 0x1000 != 0) ratio = (ratio * 0xd097f3bdfd2022b8845ad8f792aa5825) &gt;&gt; 128;</span>
+  40 | *   | <span class='executed'>        if (absTick &amp; 0x2000 != 0) ratio = (ratio * 0xa9f746462d870fdf8a65dc1f90e061e5) &gt;&gt; 128;</span>
+  41 | *   | <span class='executed'>        if (absTick &amp; 0x4000 != 0) ratio = (ratio * 0x70d869a156d2a1b890bb3df62baf32f7) &gt;&gt; 128;</span>
+  42 | *   | <span class='executed'>        if (absTick &amp; 0x8000 != 0) ratio = (ratio * 0x31be135f97d08fd981231505542fcfa6) &gt;&gt; 128;</span>
+  43 | *   | <span class='executed'>        if (absTick &amp; 0x10000 != 0) ratio = (ratio * 0x9aa508b5b7a84e1c677de54f3e99bc9) &gt;&gt; 128;</span>
+  44 | *   | <span class='executed'>        if (absTick &amp; 0x20000 != 0) ratio = (ratio * 0x5d6af8dedb81196699c329225ee604) &gt;&gt; 128;</span>
+  45 | *   | <span class='executed'>        if (absTick &amp; 0x40000 != 0) ratio = (ratio * 0x2216e584f5fa1ea926041bedfe98) &gt;&gt; 128;</span>
+  46 | *   | <span class='executed'>        if (absTick &amp; 0x80000 != 0) ratio = (ratio * 0x48a170391f7dc42444e8fa2) &gt;&gt; 128;</span>
+  47 |     | <span class='neutral'></span>
+  48 | *   | <span class='executed'>        if (tick &gt; 0) ratio = type(uint256).max / ratio;</span>
+  49 |     | <span class='neutral'></span>
+  50 |     | <span class='neutral'>        // this divides by 1&lt;&lt;32 rounding up to go from a Q128.128 to a Q128.96.</span>
+  51 |     | <span class='neutral'>        // we then downcast because we know the result always fits within 160 bits due to our tick input constraint</span>
+  52 |     | <span class='neutral'>        // we round up in the division so getTickAtSqrtRatio of the output price is always consistent</span>
+  53 | *   | <span class='executed'>        sqrtPriceX96 = uint160((ratio &gt;&gt; 32) + (ratio % (1 &lt;&lt; 32) == 0 ? 0 : 1));</span>
+  54 |     | <span class='neutral'>    }</span>
+  55 |     | <span class='neutral'></span>
+  56 |     | <span class='neutral'>    /// @notice Calculates the greatest tick value such that getRatioAtTick(tick) &lt;= ratio</span>
+  57 |     | <span class='neutral'>    /// @dev Throws in case sqrtPriceX96 &lt; MIN_SQRT_RATIO, as MIN_SQRT_RATIO is the lowest value getRatioAtTick may</span>
+  58 |     | <span class='neutral'>    /// ever return.</span>
+  59 |     | <span class='neutral'>    /// @param sqrtPriceX96 The sqrt ratio for which to compute the tick as a Q64.96</span>
+  60 |     | <span class='neutral'>    /// @return tick The greatest tick for which the ratio is less than or equal to the input ratio</span>
+  61 | *   | <span class='executed'>    function getTickAtSqrtRatio(uint160 sqrtPriceX96) internal pure returns (int24 tick) {</span>
+  62 |     | <span class='neutral'>        // second inequality must be &lt; because the price can never reach the price at the max tick</span>
+  63 | *   | <span class='executed'>        require(sqrtPriceX96 &gt;= MIN_SQRT_RATIO &amp;&amp; sqrtPriceX96 &lt; MAX_SQRT_RATIO, &#39;R&#39;);</span>
+  64 | *   | <span class='executed'>        uint256 ratio = uint256(sqrtPriceX96) &lt;&lt; 32;</span>
+  65 |     | <span class='neutral'></span>
+  66 | *   | <span class='executed'>        uint256 r = ratio;</span>
+  67 | *   | <span class='executed'>        uint256 msb = 0;</span>
+  68 |     | <span class='neutral'></span>
+  69 | *   | <span class='executed'>        assembly {</span>
+  70 | *   | <span class='executed'>            let f := shl(7, gt(r, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF))</span>
+  71 | *   | <span class='executed'>            msb := or(msb, f)</span>
+  72 | *   | <span class='executed'>            r := shr(f, r)</span>
+  73 |     | <span class='neutral'>        }</span>
+  74 | *   | <span class='executed'>        assembly {</span>
+  75 | *   | <span class='executed'>            let f := shl(6, gt(r, 0xFFFFFFFFFFFFFFFF))</span>
+  76 | *   | <span class='executed'>            msb := or(msb, f)</span>
+  77 | *   | <span class='executed'>            r := shr(f, r)</span>
+  78 |     | <span class='neutral'>        }</span>
+  79 | *   | <span class='executed'>        assembly {</span>
+  80 | *   | <span class='executed'>            let f := shl(5, gt(r, 0xFFFFFFFF))</span>
+  81 | *   | <span class='executed'>            msb := or(msb, f)</span>
+  82 | *   | <span class='executed'>            r := shr(f, r)</span>
+  83 |     | <span class='neutral'>        }</span>
+  84 | *   | <span class='executed'>        assembly {</span>
+  85 | *   | <span class='executed'>            let f := shl(4, gt(r, 0xFFFF))</span>
+  86 | *   | <span class='executed'>            msb := or(msb, f)</span>
+  87 | *   | <span class='executed'>            r := shr(f, r)</span>
+  88 |     | <span class='neutral'>        }</span>
+  89 | *   | <span class='executed'>        assembly {</span>
+  90 | *   | <span class='executed'>            let f := shl(3, gt(r, 0xFF))</span>
+  91 | *   | <span class='executed'>            msb := or(msb, f)</span>
+  92 | *   | <span class='executed'>            r := shr(f, r)</span>
+  93 |     | <span class='neutral'>        }</span>
+  94 | *   | <span class='executed'>        assembly {</span>
+  95 | *   | <span class='executed'>            let f := shl(2, gt(r, 0xF))</span>
+  96 | *   | <span class='executed'>            msb := or(msb, f)</span>
+  97 | *   | <span class='executed'>            r := shr(f, r)</span>
+  98 |     | <span class='neutral'>        }</span>
+  99 | *   | <span class='executed'>        assembly {</span>
+ 100 | *   | <span class='executed'>            let f := shl(1, gt(r, 0x3))</span>
+ 101 | *   | <span class='executed'>            msb := or(msb, f)</span>
+ 102 | *   | <span class='executed'>            r := shr(f, r)</span>
+ 103 |     | <span class='neutral'>        }</span>
+ 104 | *   | <span class='executed'>        assembly {</span>
+ 105 | *   | <span class='executed'>            let f := gt(r, 0x1)</span>
+ 106 | *   | <span class='executed'>            msb := or(msb, f)</span>
+ 107 |     | <span class='neutral'>        }</span>
+ 108 |     | <span class='neutral'></span>
+ 109 | *   | <span class='executed'>        if (msb &gt;= 128) r = ratio &gt;&gt; (msb - 127);</span>
+ 110 | *   | <span class='executed'>        else r = ratio &lt;&lt; (127 - msb);</span>
+ 111 |     | <span class='neutral'></span>
+ 112 | *   | <span class='executed'>        int256 log_2 = (int256(msb) - 128) &lt;&lt; 64;</span>
+ 113 |     | <span class='neutral'></span>
+ 114 | *   | <span class='executed'>        assembly {</span>
+ 115 | *   | <span class='executed'>            r := shr(127, mul(r, r))</span>
+ 116 | *   | <span class='executed'>            let f := shr(128, r)</span>
+ 117 | *   | <span class='executed'>            log_2 := or(log_2, shl(63, f))</span>
+ 118 | *   | <span class='executed'>            r := shr(f, r)</span>
+ 119 |     | <span class='neutral'>        }</span>
+ 120 | *   | <span class='executed'>        assembly {</span>
+ 121 | *   | <span class='executed'>            r := shr(127, mul(r, r))</span>
+ 122 | *   | <span class='executed'>            let f := shr(128, r)</span>
+ 123 | *   | <span class='executed'>            log_2 := or(log_2, shl(62, f))</span>
+ 124 | *   | <span class='executed'>            r := shr(f, r)</span>
+ 125 |     | <span class='neutral'>        }</span>
+ 126 | *   | <span class='executed'>        assembly {</span>
+ 127 | *   | <span class='executed'>            r := shr(127, mul(r, r))</span>
+ 128 | *   | <span class='executed'>            let f := shr(128, r)</span>
+ 129 | *   | <span class='executed'>            log_2 := or(log_2, shl(61, f))</span>
+ 130 | *   | <span class='executed'>            r := shr(f, r)</span>
+ 131 |     | <span class='neutral'>        }</span>
+ 132 | *   | <span class='executed'>        assembly {</span>
+ 133 | *   | <span class='executed'>            r := shr(127, mul(r, r))</span>
+ 134 | *   | <span class='executed'>            let f := shr(128, r)</span>
+ 135 | *   | <span class='executed'>            log_2 := or(log_2, shl(60, f))</span>
+ 136 | *   | <span class='executed'>            r := shr(f, r)</span>
+ 137 |     | <span class='neutral'>        }</span>
+ 138 | *   | <span class='executed'>        assembly {</span>
+ 139 | *   | <span class='executed'>            r := shr(127, mul(r, r))</span>
+ 140 | *   | <span class='executed'>            let f := shr(128, r)</span>
+ 141 | *   | <span class='executed'>            log_2 := or(log_2, shl(59, f))</span>
+ 142 | *   | <span class='executed'>            r := shr(f, r)</span>
+ 143 |     | <span class='neutral'>        }</span>
+ 144 | *   | <span class='executed'>        assembly {</span>
+ 145 | *   | <span class='executed'>            r := shr(127, mul(r, r))</span>
+ 146 | *   | <span class='executed'>            let f := shr(128, r)</span>
+ 147 | *   | <span class='executed'>            log_2 := or(log_2, shl(58, f))</span>
+ 148 | *   | <span class='executed'>            r := shr(f, r)</span>
+ 149 |     | <span class='neutral'>        }</span>
+ 150 | *   | <span class='executed'>        assembly {</span>
+ 151 | *   | <span class='executed'>            r := shr(127, mul(r, r))</span>
+ 152 | *   | <span class='executed'>            let f := shr(128, r)</span>
+ 153 | *   | <span class='executed'>            log_2 := or(log_2, shl(57, f))</span>
+ 154 | *   | <span class='executed'>            r := shr(f, r)</span>
+ 155 |     | <span class='neutral'>        }</span>
+ 156 | *   | <span class='executed'>        assembly {</span>
+ 157 | *   | <span class='executed'>            r := shr(127, mul(r, r))</span>
+ 158 | *   | <span class='executed'>            let f := shr(128, r)</span>
+ 159 | *   | <span class='executed'>            log_2 := or(log_2, shl(56, f))</span>
+ 160 | *   | <span class='executed'>            r := shr(f, r)</span>
+ 161 |     | <span class='neutral'>        }</span>
+ 162 | *   | <span class='executed'>        assembly {</span>
+ 163 | *   | <span class='executed'>            r := shr(127, mul(r, r))</span>
+ 164 | *   | <span class='executed'>            let f := shr(128, r)</span>
+ 165 | *   | <span class='executed'>            log_2 := or(log_2, shl(55, f))</span>
+ 166 | *   | <span class='executed'>            r := shr(f, r)</span>
+ 167 |     | <span class='neutral'>        }</span>
+ 168 | *   | <span class='executed'>        assembly {</span>
+ 169 | *   | <span class='executed'>            r := shr(127, mul(r, r))</span>
+ 170 | *   | <span class='executed'>            let f := shr(128, r)</span>
+ 171 | *   | <span class='executed'>            log_2 := or(log_2, shl(54, f))</span>
+ 172 | *   | <span class='executed'>            r := shr(f, r)</span>
+ 173 |     | <span class='neutral'>        }</span>
+ 174 | *   | <span class='executed'>        assembly {</span>
+ 175 | *   | <span class='executed'>            r := shr(127, mul(r, r))</span>
+ 176 | *   | <span class='executed'>            let f := shr(128, r)</span>
+ 177 | *   | <span class='executed'>            log_2 := or(log_2, shl(53, f))</span>
+ 178 | *   | <span class='executed'>            r := shr(f, r)</span>
+ 179 |     | <span class='neutral'>        }</span>
+ 180 | *   | <span class='executed'>        assembly {</span>
+ 181 | *   | <span class='executed'>            r := shr(127, mul(r, r))</span>
+ 182 | *   | <span class='executed'>            let f := shr(128, r)</span>
+ 183 | *   | <span class='executed'>            log_2 := or(log_2, shl(52, f))</span>
+ 184 | *   | <span class='executed'>            r := shr(f, r)</span>
+ 185 |     | <span class='neutral'>        }</span>
+ 186 | *   | <span class='executed'>        assembly {</span>
+ 187 | *   | <span class='executed'>            r := shr(127, mul(r, r))</span>
+ 188 | *   | <span class='executed'>            let f := shr(128, r)</span>
+ 189 | *   | <span class='executed'>            log_2 := or(log_2, shl(51, f))</span>
+ 190 | *   | <span class='executed'>            r := shr(f, r)</span>
+ 191 |     | <span class='neutral'>        }</span>
+ 192 | *   | <span class='executed'>        assembly {</span>
+ 193 | *   | <span class='executed'>            r := shr(127, mul(r, r))</span>
+ 194 | *   | <span class='executed'>            let f := shr(128, r)</span>
+ 195 | *   | <span class='executed'>            log_2 := or(log_2, shl(50, f))</span>
+ 196 |     | <span class='neutral'>        }</span>
+ 197 |     | <span class='neutral'></span>
+ 198 | *   | <span class='executed'>        int256 log_sqrt10001 = log_2 * 255738958999603826347141; // 128.128 number</span>
+ 199 |     | <span class='neutral'></span>
+ 200 | *   | <span class='executed'>        int24 tickLow = int24((log_sqrt10001 - 3402992956809132418596140100660247210) &gt;&gt; 128);</span>
+ 201 | *   | <span class='executed'>        int24 tickHi = int24((log_sqrt10001 + 291339464771989622907027621153398088495) &gt;&gt; 128);</span>
+ 202 |     | <span class='neutral'></span>
+ 203 | *   | <span class='executed'>        tick = tickLow == tickHi ? tickLow : getSqrtRatioAtTick(tickHi) &lt;= sqrtPriceX96 ? tickHi : tickLow;</span>
+ 204 |     | <span class='neutral'>    }</span>
+ 205 |     | <span class='neutral'>}</span>
+ 206 |     | <span class='neutral'></span>
+
+</code>
+<br />
+
+<b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/test/TickMathEchidnaTest.sol</b>
+<code>
+  1 |     | <span class='neutral'>// SPDX-License-Identifier: UNLICENSED</span>
+  2 |     | <span class='neutral'>pragma solidity =0.7.6;</span>
+  3 |     | <span class='neutral'></span>
+  4 |     | <span class='neutral'>import &#39;../libraries/TickMath.sol&#39;;</span>
+  5 |     | <span class='neutral'></span>
+  6 | *   | <span class='executed'>contract TickMathEchidnaTest {</span>
+  7 |     | <span class='neutral'>    // uniqueness and increasing order</span>
+  8 | *   | <span class='executed'>    function checkGetSqrtRatioAtTickInvariants(int24 tick) external pure {</span>
+  9 | *   | <span class='executed'>        uint160 ratio = TickMath.getSqrtRatioAtTick(tick);</span>
+ 10 | *   | <span class='executed'>        assert(TickMath.getSqrtRatioAtTick(tick - 1) &lt; ratio &amp;&amp; ratio &lt; TickMath.getSqrtRatioAtTick(tick + 1));</span>
+ 11 | *   | <span class='executed'>        assert(ratio &gt;= TickMath.MIN_SQRT_RATIO);</span>
+ 12 | *   | <span class='executed'>        assert(ratio &lt;= TickMath.MAX_SQRT_RATIO);</span>
+ 13 |     | <span class='neutral'>    }</span>
+ 14 |     | <span class='neutral'></span>
+ 15 |     | <span class='neutral'>    // the ratio is always between the returned tick and the returned tick+1</span>
+ 16 | *   | <span class='executed'>    function checkGetTickAtSqrtRatioInvariants(uint160 ratio) external pure {</span>
+ 17 | *   | <span class='executed'>        int24 tick = TickMath.getTickAtSqrtRatio(ratio);</span>
+ 18 | *   | <span class='executed'>        assert(ratio &gt;= TickMath.getSqrtRatioAtTick(tick) &amp;&amp; ratio &lt; TickMath.getSqrtRatioAtTick(tick + 1));</span>
+ 19 | *   | <span class='executed'>        assert(tick &gt;= TickMath.MIN_TICK);</span>
+ 20 | *   | <span class='executed'>        assert(tick &lt; TickMath.MAX_TICK);</span>
+ 21 |     | <span class='neutral'>    }</span>
+ 22 |     | <span class='neutral'>}</span>
+ 23 |     | <span class='neutral'></span>
+
+</code>
+<br />
+

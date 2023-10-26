@@ -1,0 +1,40 @@
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/UnsafeMath.sol
+  1 |     | // SPDX-License-Identifier: GPL-2.0-or-later
+  2 |     | pragma solidity >=0.5.0;
+  3 |     | 
+  4 |     | /// @title Math functions that do not check inputs or outputs
+  5 |     | /// @notice Contains methods that perform common math functions but do not do any overflow or underflow checks
+  6 |     | library UnsafeMath {
+  7 |     |     /// @notice Returns ceil(x / y)
+  8 |     |     /// @dev division by 0 has unspecified behavior, and must be checked externally
+  9 |     |     /// @param x The dividend
+ 10 |     |     /// @param y The divisor
+ 11 |     |     /// @return z The quotient, ceil(x / y)
+ 12 | *   |     function divRoundingUp(uint256 x, uint256 y) internal pure returns (uint256 z) {
+ 13 | *   |         assembly {
+ 14 | *   |             z := add(div(x, y), gt(mod(x, y), 0))
+ 15 |     |         }
+ 16 |     |     }
+ 17 |     | }
+ 18 |     | 
+
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/test/UnsafeMathEchidnaTest.sol
+  1 |     | // SPDX-License-Identifier: UNLICENSED
+  2 |     | pragma solidity =0.7.6;
+  3 |     | 
+  4 |     | import '../libraries/UnsafeMath.sol';
+  5 |     | 
+  6 | *   | contract UnsafeMathEchidnaTest {
+  7 | *   |     function checkDivRoundingUp(uint256 x, uint256 d) external pure {
+  8 | *   |         require(d > 0);
+  9 | *   |         uint256 z = UnsafeMath.divRoundingUp(x, d);
+ 10 | *   |         uint256 diff = z - (x / d);
+ 11 | *   |         if (x % d == 0) {
+ 12 | *   |             assert(diff == 0);
+ 13 |     |         } else {
+ 14 | *   |             assert(diff == 1);
+ 15 |     |         }
+ 16 |     |     }
+ 17 |     | }
+ 18 |     | 
+

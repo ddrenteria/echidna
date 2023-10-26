@@ -1,0 +1,48 @@
+<style> code { white-space: pre-wrap; display: block; background-color: #eee; }.executed { background-color: #afa; }.reverted { background-color: #ffa; }.unexecuted { background-color: #faa; }.neutral { background-color: #eee; }</style><b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/UnsafeMath.sol</b>
+<code>
+  1 |     | <span class='neutral'>// SPDX-License-Identifier: GPL-2.0-or-later</span>
+  2 |     | <span class='neutral'>pragma solidity &gt;=0.5.0;</span>
+  3 |     | <span class='neutral'></span>
+  4 |     | <span class='neutral'>/// @title Math functions that do not check inputs or outputs</span>
+  5 |     | <span class='neutral'>/// @notice Contains methods that perform common math functions but do not do any overflow or underflow checks</span>
+  6 |     | <span class='unexecuted'>library UnsafeMath {</span>
+  7 |     | <span class='neutral'>    /// @notice Returns ceil(x / y)</span>
+  8 |     | <span class='neutral'>    /// @dev division by 0 has unspecified behavior, and must be checked externally</span>
+  9 |     | <span class='neutral'>    /// @param x The dividend</span>
+ 10 |     | <span class='neutral'>    /// @param y The divisor</span>
+ 11 |     | <span class='neutral'>    /// @return z The quotient, ceil(x / y)</span>
+ 12 | *   | <span class='executed'>    function divRoundingUp(uint256 x, uint256 y) internal pure returns (uint256 z) {</span>
+ 13 | *   | <span class='executed'>        assembly {</span>
+ 14 | *   | <span class='executed'>            z := add(div(x, y), gt(mod(x, y), 0))</span>
+ 15 |     | <span class='neutral'>        }</span>
+ 16 |     | <span class='neutral'>    }</span>
+ 17 |     | <span class='neutral'>}</span>
+ 18 |     | <span class='neutral'></span>
+
+</code>
+<br />
+
+<b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/test/UnsafeMathEchidnaTest.sol</b>
+<code>
+  1 |     | <span class='neutral'>// SPDX-License-Identifier: UNLICENSED</span>
+  2 |     | <span class='neutral'>pragma solidity =0.7.6;</span>
+  3 |     | <span class='neutral'></span>
+  4 |     | <span class='neutral'>import &#39;../libraries/UnsafeMath.sol&#39;;</span>
+  5 |     | <span class='neutral'></span>
+  6 | *   | <span class='executed'>contract UnsafeMathEchidnaTest {</span>
+  7 | *   | <span class='executed'>    function checkDivRoundingUp(uint256 x, uint256 d) external pure {</span>
+  8 | *   | <span class='executed'>        require(d &gt; 0);</span>
+  9 | *   | <span class='executed'>        uint256 z = UnsafeMath.divRoundingUp(x, d);</span>
+ 10 | *   | <span class='executed'>        uint256 diff = z - (x / d);</span>
+ 11 | *   | <span class='executed'>        if (x % d == 0) {</span>
+ 12 | *   | <span class='executed'>            assert(diff == 0);</span>
+ 13 |     | <span class='neutral'>        } else {</span>
+ 14 | *   | <span class='executed'>            assert(diff == 1);</span>
+ 15 |     | <span class='neutral'>        }</span>
+ 16 |     | <span class='neutral'>    }</span>
+ 17 |     | <span class='neutral'>}</span>
+ 18 |     | <span class='neutral'></span>
+
+</code>
+<br />
+

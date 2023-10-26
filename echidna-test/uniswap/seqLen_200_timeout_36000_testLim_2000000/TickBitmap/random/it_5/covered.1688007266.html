@@ -1,0 +1,240 @@
+<style> code { white-space: pre-wrap; display: block; background-color: #eee; }.executed { background-color: #afa; }.reverted { background-color: #ffa; }.unexecuted { background-color: #faa; }.neutral { background-color: #eee; }</style><b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/BitMath.sol</b>
+<code>
+  1 |     | <span class='neutral'>// SPDX-License-Identifier: GPL-2.0-or-later</span>
+  2 |     | <span class='neutral'>pragma solidity &gt;=0.5.0;</span>
+  3 |     | <span class='neutral'></span>
+  4 |     | <span class='neutral'>/// @title BitMath</span>
+  5 |     | <span class='neutral'>/// @dev This library provides functionality for computing bit properties of an unsigned integer</span>
+  6 |     | <span class='unexecuted'>library BitMath {</span>
+  7 |     | <span class='neutral'>    /// @notice Returns the index of the most significant bit of the number,</span>
+  8 |     | <span class='neutral'>    ///     where the least significant bit is at index 0 and the most significant bit is at index 255</span>
+  9 |     | <span class='neutral'>    /// @dev The function satisfies the property:</span>
+ 10 |     | <span class='neutral'>    ///     x &gt;= 2**mostSignificantBit(x) and x &lt; 2**(mostSignificantBit(x)+1)</span>
+ 11 |     | <span class='neutral'>    /// @param x the value for which to compute the most significant bit, must be greater than 0</span>
+ 12 |     | <span class='neutral'>    /// @return r the index of the most significant bit</span>
+ 13 | *   | <span class='executed'>    function mostSignificantBit(uint256 x) internal pure returns (uint8 r) {</span>
+ 14 | *   | <span class='executed'>        require(x &gt; 0);</span>
+ 15 |     | <span class='neutral'></span>
+ 16 | *   | <span class='executed'>        if (x &gt;= 0x100000000000000000000000000000000) {</span>
+ 17 | *   | <span class='executed'>            x &gt;&gt;= 128;</span>
+ 18 | *   | <span class='executed'>            r += 128;</span>
+ 19 |     | <span class='neutral'>        }</span>
+ 20 | *   | <span class='executed'>        if (x &gt;= 0x10000000000000000) {</span>
+ 21 | *   | <span class='executed'>            x &gt;&gt;= 64;</span>
+ 22 | *   | <span class='executed'>            r += 64;</span>
+ 23 |     | <span class='neutral'>        }</span>
+ 24 | *   | <span class='executed'>        if (x &gt;= 0x100000000) {</span>
+ 25 | *   | <span class='executed'>            x &gt;&gt;= 32;</span>
+ 26 | *   | <span class='executed'>            r += 32;</span>
+ 27 |     | <span class='neutral'>        }</span>
+ 28 | *   | <span class='executed'>        if (x &gt;= 0x10000) {</span>
+ 29 | *   | <span class='executed'>            x &gt;&gt;= 16;</span>
+ 30 | *   | <span class='executed'>            r += 16;</span>
+ 31 |     | <span class='neutral'>        }</span>
+ 32 | *   | <span class='executed'>        if (x &gt;= 0x100) {</span>
+ 33 | *   | <span class='executed'>            x &gt;&gt;= 8;</span>
+ 34 | *   | <span class='executed'>            r += 8;</span>
+ 35 |     | <span class='neutral'>        }</span>
+ 36 | *   | <span class='executed'>        if (x &gt;= 0x10) {</span>
+ 37 | *   | <span class='executed'>            x &gt;&gt;= 4;</span>
+ 38 | *   | <span class='executed'>            r += 4;</span>
+ 39 |     | <span class='neutral'>        }</span>
+ 40 | *   | <span class='executed'>        if (x &gt;= 0x4) {</span>
+ 41 | *   | <span class='executed'>            x &gt;&gt;= 2;</span>
+ 42 | *   | <span class='executed'>            r += 2;</span>
+ 43 |     | <span class='neutral'>        }</span>
+ 44 | *   | <span class='executed'>        if (x &gt;= 0x2) r += 1;</span>
+ 45 |     | <span class='neutral'>    }</span>
+ 46 |     | <span class='neutral'></span>
+ 47 |     | <span class='neutral'>    /// @notice Returns the index of the least significant bit of the number,</span>
+ 48 |     | <span class='neutral'>    ///     where the least significant bit is at index 0 and the most significant bit is at index 255</span>
+ 49 |     | <span class='neutral'>    /// @dev The function satisfies the property:</span>
+ 50 |     | <span class='neutral'>    ///     (x &amp; 2**leastSignificantBit(x)) != 0 and (x &amp; (2**(leastSignificantBit(x)) - 1)) == 0)</span>
+ 51 |     | <span class='neutral'>    /// @param x the value for which to compute the least significant bit, must be greater than 0</span>
+ 52 |     | <span class='neutral'>    /// @return r the index of the least significant bit</span>
+ 53 | *   | <span class='executed'>    function leastSignificantBit(uint256 x) internal pure returns (uint8 r) {</span>
+ 54 | *   | <span class='executed'>        require(x &gt; 0);</span>
+ 55 |     | <span class='neutral'></span>
+ 56 | *   | <span class='executed'>        r = 255;</span>
+ 57 | *   | <span class='executed'>        if (x &amp; type(uint128).max &gt; 0) {</span>
+ 58 | *   | <span class='executed'>            r -= 128;</span>
+ 59 |     | <span class='neutral'>        } else {</span>
+ 60 | *   | <span class='executed'>            x &gt;&gt;= 128;</span>
+ 61 |     | <span class='neutral'>        }</span>
+ 62 | *   | <span class='executed'>        if (x &amp; type(uint64).max &gt; 0) {</span>
+ 63 | *   | <span class='executed'>            r -= 64;</span>
+ 64 |     | <span class='neutral'>        } else {</span>
+ 65 | *   | <span class='executed'>            x &gt;&gt;= 64;</span>
+ 66 |     | <span class='neutral'>        }</span>
+ 67 | *   | <span class='executed'>        if (x &amp; type(uint32).max &gt; 0) {</span>
+ 68 | *   | <span class='executed'>            r -= 32;</span>
+ 69 |     | <span class='neutral'>        } else {</span>
+ 70 | *   | <span class='executed'>            x &gt;&gt;= 32;</span>
+ 71 |     | <span class='neutral'>        }</span>
+ 72 | *   | <span class='executed'>        if (x &amp; type(uint16).max &gt; 0) {</span>
+ 73 | *   | <span class='executed'>            r -= 16;</span>
+ 74 |     | <span class='neutral'>        } else {</span>
+ 75 | *   | <span class='executed'>            x &gt;&gt;= 16;</span>
+ 76 |     | <span class='neutral'>        }</span>
+ 77 | *   | <span class='executed'>        if (x &amp; type(uint8).max &gt; 0) {</span>
+ 78 | *   | <span class='executed'>            r -= 8;</span>
+ 79 |     | <span class='neutral'>        } else {</span>
+ 80 | *   | <span class='executed'>            x &gt;&gt;= 8;</span>
+ 81 |     | <span class='neutral'>        }</span>
+ 82 | *   | <span class='executed'>        if (x &amp; 0xf &gt; 0) {</span>
+ 83 | *   | <span class='executed'>            r -= 4;</span>
+ 84 |     | <span class='neutral'>        } else {</span>
+ 85 | *   | <span class='executed'>            x &gt;&gt;= 4;</span>
+ 86 |     | <span class='neutral'>        }</span>
+ 87 | *   | <span class='executed'>        if (x &amp; 0x3 &gt; 0) {</span>
+ 88 | *   | <span class='executed'>            r -= 2;</span>
+ 89 |     | <span class='neutral'>        } else {</span>
+ 90 | *   | <span class='executed'>            x &gt;&gt;= 2;</span>
+ 91 |     | <span class='neutral'>        }</span>
+ 92 | *   | <span class='executed'>        if (x &amp; 0x1 &gt; 0) r -= 1;</span>
+ 93 |     | <span class='neutral'>    }</span>
+ 94 |     | <span class='neutral'>}</span>
+ 95 |     | <span class='neutral'></span>
+
+</code>
+<br />
+
+<b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/TickBitmap.sol</b>
+<code>
+  1 |     | <span class='neutral'>// SPDX-License-Identifier: BUSL-1.1</span>
+  2 |     | <span class='neutral'>pragma solidity &gt;=0.5.0;</span>
+  3 |     | <span class='neutral'></span>
+  4 |     | <span class='neutral'>import &#39;./BitMath.sol&#39;;</span>
+  5 |     | <span class='neutral'></span>
+  6 |     | <span class='neutral'>/// @title Packed tick initialized state library</span>
+  7 |     | <span class='neutral'>/// @notice Stores a packed mapping of tick index to its initialized state</span>
+  8 |     | <span class='neutral'>/// @dev The mapping uses int16 for keys since ticks are represented as int24 and there are 256 (2^8) values per word.</span>
+  9 |     | <span class='unexecuted'>library TickBitmap {</span>
+ 10 |     | <span class='neutral'>    /// @notice Computes the position in the mapping where the initialized bit for a tick lives</span>
+ 11 |     | <span class='neutral'>    /// @param tick The tick for which to compute the position</span>
+ 12 |     | <span class='neutral'>    /// @return wordPos The key in the mapping containing the word in which the bit is stored</span>
+ 13 |     | <span class='neutral'>    /// @return bitPos The bit position in the word where the flag is stored</span>
+ 14 | *   | <span class='executed'>    function position(int24 tick) private pure returns (int16 wordPos, uint8 bitPos) {</span>
+ 15 | *   | <span class='executed'>        wordPos = int16(tick &gt;&gt; 8);</span>
+ 16 | *   | <span class='executed'>        bitPos = uint8(tick % 256);</span>
+ 17 |     | <span class='neutral'>    }</span>
+ 18 |     | <span class='neutral'></span>
+ 19 |     | <span class='neutral'>    /// @notice Flips the initialized state for a given tick from false to true, or vice versa</span>
+ 20 |     | <span class='neutral'>    /// @param self The mapping in which to flip the tick</span>
+ 21 |     | <span class='neutral'>    /// @param tick The tick to flip</span>
+ 22 |     | <span class='neutral'>    /// @param tickSpacing The spacing between usable ticks</span>
+ 23 | *   | <span class='executed'>    function flipTick(</span>
+ 24 |     | <span class='neutral'>        mapping(int16 =&gt; uint256) storage self,</span>
+ 25 |     | <span class='neutral'>        int24 tick,</span>
+ 26 |     | <span class='neutral'>        int24 tickSpacing</span>
+ 27 |     | <span class='neutral'>    ) internal {</span>
+ 28 | *   | <span class='executed'>        require(tick % tickSpacing == 0); // ensure that the tick is spaced</span>
+ 29 | *   | <span class='executed'>        (int16 wordPos, uint8 bitPos) = position(tick / tickSpacing);</span>
+ 30 | *   | <span class='executed'>        uint256 mask = 1 &lt;&lt; bitPos;</span>
+ 31 | *   | <span class='executed'>        self[wordPos] ^= mask;</span>
+ 32 |     | <span class='neutral'>    }</span>
+ 33 |     | <span class='neutral'></span>
+ 34 |     | <span class='neutral'>    /// @notice Returns the next initialized tick contained in the same word (or adjacent word) as the tick that is either</span>
+ 35 |     | <span class='neutral'>    /// to the left (less than or equal to) or right (greater than) of the given tick</span>
+ 36 |     | <span class='neutral'>    /// @param self The mapping in which to compute the next initialized tick</span>
+ 37 |     | <span class='neutral'>    /// @param tick The starting tick</span>
+ 38 |     | <span class='neutral'>    /// @param tickSpacing The spacing between usable ticks</span>
+ 39 |     | <span class='neutral'>    /// @param lte Whether to search for the next initialized tick to the left (less than or equal to the starting tick)</span>
+ 40 |     | <span class='neutral'>    /// @return next The next initialized or uninitialized tick up to 256 ticks away from the current tick</span>
+ 41 |     | <span class='neutral'>    /// @return initialized Whether the next tick is initialized, as the function only searches within up to 256 ticks</span>
+ 42 | *   | <span class='executed'>    function nextInitializedTickWithinOneWord(</span>
+ 43 |     | <span class='neutral'>        mapping(int16 =&gt; uint256) storage self,</span>
+ 44 |     | <span class='neutral'>        int24 tick,</span>
+ 45 |     | <span class='neutral'>        int24 tickSpacing,</span>
+ 46 |     | <span class='neutral'>        bool lte</span>
+ 47 | *   | <span class='executed'>    ) internal view returns (int24 next, bool initialized) {</span>
+ 48 | *   | <span class='executed'>        int24 compressed = tick / tickSpacing;</span>
+ 49 | *   | <span class='executed'>        if (tick &lt; 0 &amp;&amp; tick % tickSpacing != 0) compressed--; // round towards negative infinity</span>
+ 50 |     | <span class='neutral'></span>
+ 51 | *   | <span class='executed'>        if (lte) {</span>
+ 52 | *   | <span class='executed'>            (int16 wordPos, uint8 bitPos) = position(compressed);</span>
+ 53 |     | <span class='neutral'>            // all the 1s at or to the right of the current bitPos</span>
+ 54 | *   | <span class='executed'>            uint256 mask = (1 &lt;&lt; bitPos) - 1 + (1 &lt;&lt; bitPos);</span>
+ 55 | *   | <span class='executed'>            uint256 masked = self[wordPos] &amp; mask;</span>
+ 56 |     | <span class='neutral'></span>
+ 57 |     | <span class='neutral'>            // if there are no initialized ticks to the right of or at the current tick, return rightmost in the word</span>
+ 58 | *   | <span class='executed'>            initialized = masked != 0;</span>
+ 59 |     | <span class='neutral'>            // overflow/underflow is possible, but prevented externally by limiting both tickSpacing and tick</span>
+ 60 | *   | <span class='executed'>            next = initialized</span>
+ 61 | *   | <span class='executed'>                ? (compressed - int24(bitPos - BitMath.mostSignificantBit(masked))) * tickSpacing</span>
+ 62 | *   | <span class='executed'>                : (compressed - int24(bitPos)) * tickSpacing;</span>
+ 63 |     | <span class='neutral'>        } else {</span>
+ 64 |     | <span class='neutral'>            // start from the word of the next tick, since the current tick state doesn&#39;t matter</span>
+ 65 | *   | <span class='executed'>            (int16 wordPos, uint8 bitPos) = position(compressed + 1);</span>
+ 66 |     | <span class='neutral'>            // all the 1s at or to the left of the bitPos</span>
+ 67 | *   | <span class='executed'>            uint256 mask = ~((1 &lt;&lt; bitPos) - 1);</span>
+ 68 | *   | <span class='executed'>            uint256 masked = self[wordPos] &amp; mask;</span>
+ 69 |     | <span class='neutral'></span>
+ 70 |     | <span class='neutral'>            // if there are no initialized ticks to the left of the current tick, return leftmost in the word</span>
+ 71 | *   | <span class='executed'>            initialized = masked != 0;</span>
+ 72 |     | <span class='neutral'>            // overflow/underflow is possible, but prevented externally by limiting both tickSpacing and tick</span>
+ 73 | *   | <span class='executed'>            next = initialized</span>
+ 74 | *   | <span class='executed'>                ? (compressed + 1 + int24(BitMath.leastSignificantBit(masked) - bitPos)) * tickSpacing</span>
+ 75 | *   | <span class='executed'>                : (compressed + 1 + int24(type(uint8).max - bitPos)) * tickSpacing;</span>
+ 76 |     | <span class='neutral'>        }</span>
+ 77 |     | <span class='neutral'>    }</span>
+ 78 |     | <span class='neutral'>}</span>
+ 79 |     | <span class='neutral'></span>
+
+</code>
+<br />
+
+<b>/home/lafhis/Desktop/tesis/ours/echidna/uniswap/test/TickBitmapEchidnaTest.sol</b>
+<code>
+  1 |     | <span class='neutral'>// SPDX-License-Identifier: UNLICENSED</span>
+  2 |     | <span class='neutral'>pragma solidity =0.7.6;</span>
+  3 |     | <span class='neutral'></span>
+  4 |     | <span class='neutral'>import &#39;../libraries/TickBitmap.sol&#39;;</span>
+  5 |     | <span class='neutral'></span>
+  6 | *   | <span class='executed'>contract TickBitmapEchidnaTest {</span>
+  7 |     | <span class='neutral'>    using TickBitmap for mapping(int16 =&gt; uint256);</span>
+  8 |     | <span class='neutral'></span>
+  9 |     | <span class='neutral'>    mapping(int16 =&gt; uint256) private bitmap;</span>
+ 10 |     | <span class='neutral'></span>
+ 11 |     | <span class='neutral'>    // returns whether the given tick is initialized</span>
+ 12 | *   | <span class='executed'>    function isInitialized(int24 tick) private view returns (bool) {</span>
+ 13 | *   | <span class='executed'>        (int24 next, bool initialized) = bitmap.nextInitializedTickWithinOneWord(tick, 1, true);</span>
+ 14 | *   | <span class='executed'>        return next == tick ? initialized : false;</span>
+ 15 |     | <span class='neutral'>    }</span>
+ 16 |     | <span class='neutral'></span>
+ 17 | *   | <span class='executed'>    function flipTick(int24 tick) external {</span>
+ 18 | *   | <span class='executed'>        bool before = isInitialized(tick);</span>
+ 19 | *   | <span class='executed'>        bitmap.flipTick(tick, 1);</span>
+ 20 | *   | <span class='executed'>        assert(isInitialized(tick) == !before);</span>
+ 21 |     | <span class='neutral'>    }</span>
+ 22 |     | <span class='neutral'></span>
+ 23 | *   | <span class='executed'>    function checkNextInitializedTickWithinOneWordInvariants(int24 tick, bool lte) external view {</span>
+ 24 | *   | <span class='executed'>        (int24 next, bool initialized) = bitmap.nextInitializedTickWithinOneWord(tick, 1, lte);</span>
+ 25 | *   | <span class='executed'>        if (lte) {</span>
+ 26 |     | <span class='neutral'>            // type(int24).min + 256</span>
+ 27 | *   | <span class='executed'>            require(tick &gt;= -8388352);</span>
+ 28 | *   | <span class='executed'>            assert(next &lt;= tick);</span>
+ 29 | *   | <span class='executed'>            assert(tick - next &lt; 256);</span>
+ 30 |     | <span class='neutral'>            // all the ticks between the input tick and the next tick should be uninitialized</span>
+ 31 | *   | <span class='executed'>            for (int24 i = tick; i &gt; next; i--) {</span>
+ 32 | *   | <span class='executed'>                assert(!isInitialized(i));</span>
+ 33 |     | <span class='neutral'>            }</span>
+ 34 | *   | <span class='executed'>            assert(isInitialized(next) == initialized);</span>
+ 35 |     | <span class='neutral'>        } else {</span>
+ 36 |     | <span class='neutral'>            // type(int24).max - 256</span>
+ 37 | *   | <span class='executed'>            require(tick &lt; 8388351);</span>
+ 38 | *   | <span class='executed'>            assert(next &gt; tick);</span>
+ 39 | *   | <span class='executed'>            assert(next - tick &lt;= 256);</span>
+ 40 |     | <span class='neutral'>            // all the ticks between the input tick and the next tick should be uninitialized</span>
+ 41 | *   | <span class='executed'>            for (int24 i = tick + 1; i &lt; next; i++) {</span>
+ 42 | *   | <span class='executed'>                assert(!isInitialized(i));</span>
+ 43 |     | <span class='neutral'>            }</span>
+ 44 | *   | <span class='executed'>            assert(isInitialized(next) == initialized);</span>
+ 45 |     | <span class='neutral'>        }</span>
+ 46 |     | <span class='neutral'>    }</span>
+ 47 |     | <span class='neutral'>}</span>
+ 48 |     | <span class='neutral'></span>
+
+</code>
+<br />
+

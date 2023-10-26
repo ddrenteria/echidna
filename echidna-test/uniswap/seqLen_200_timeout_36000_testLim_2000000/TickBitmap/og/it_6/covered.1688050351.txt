@@ -1,0 +1,228 @@
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/BitMath.sol
+  1 |     | // SPDX-License-Identifier: GPL-2.0-or-later
+  2 |     | pragma solidity >=0.5.0;
+  3 |     | 
+  4 |     | /// @title BitMath
+  5 |     | /// @dev This library provides functionality for computing bit properties of an unsigned integer
+  6 |     | library BitMath {
+  7 |     |     /// @notice Returns the index of the most significant bit of the number,
+  8 |     |     ///     where the least significant bit is at index 0 and the most significant bit is at index 255
+  9 |     |     /// @dev The function satisfies the property:
+ 10 |     |     ///     x >= 2**mostSignificantBit(x) and x < 2**(mostSignificantBit(x)+1)
+ 11 |     |     /// @param x the value for which to compute the most significant bit, must be greater than 0
+ 12 |     |     /// @return r the index of the most significant bit
+ 13 | *   |     function mostSignificantBit(uint256 x) internal pure returns (uint8 r) {
+ 14 | *   |         require(x > 0);
+ 15 |     | 
+ 16 | *   |         if (x >= 0x100000000000000000000000000000000) {
+ 17 | *   |             x >>= 128;
+ 18 | *   |             r += 128;
+ 19 |     |         }
+ 20 | *   |         if (x >= 0x10000000000000000) {
+ 21 | *   |             x >>= 64;
+ 22 | *   |             r += 64;
+ 23 |     |         }
+ 24 | *   |         if (x >= 0x100000000) {
+ 25 | *   |             x >>= 32;
+ 26 | *   |             r += 32;
+ 27 |     |         }
+ 28 | *   |         if (x >= 0x10000) {
+ 29 | *   |             x >>= 16;
+ 30 | *   |             r += 16;
+ 31 |     |         }
+ 32 | *   |         if (x >= 0x100) {
+ 33 | *   |             x >>= 8;
+ 34 | *   |             r += 8;
+ 35 |     |         }
+ 36 | *   |         if (x >= 0x10) {
+ 37 | *   |             x >>= 4;
+ 38 | *   |             r += 4;
+ 39 |     |         }
+ 40 | *   |         if (x >= 0x4) {
+ 41 | *   |             x >>= 2;
+ 42 | *   |             r += 2;
+ 43 |     |         }
+ 44 | *   |         if (x >= 0x2) r += 1;
+ 45 |     |     }
+ 46 |     | 
+ 47 |     |     /// @notice Returns the index of the least significant bit of the number,
+ 48 |     |     ///     where the least significant bit is at index 0 and the most significant bit is at index 255
+ 49 |     |     /// @dev The function satisfies the property:
+ 50 |     |     ///     (x & 2**leastSignificantBit(x)) != 0 and (x & (2**(leastSignificantBit(x)) - 1)) == 0)
+ 51 |     |     /// @param x the value for which to compute the least significant bit, must be greater than 0
+ 52 |     |     /// @return r the index of the least significant bit
+ 53 | *   |     function leastSignificantBit(uint256 x) internal pure returns (uint8 r) {
+ 54 | *   |         require(x > 0);
+ 55 |     | 
+ 56 | *   |         r = 255;
+ 57 | *   |         if (x & type(uint128).max > 0) {
+ 58 | *   |             r -= 128;
+ 59 |     |         } else {
+ 60 | *   |             x >>= 128;
+ 61 |     |         }
+ 62 | *   |         if (x & type(uint64).max > 0) {
+ 63 | *   |             r -= 64;
+ 64 |     |         } else {
+ 65 | *   |             x >>= 64;
+ 66 |     |         }
+ 67 | *   |         if (x & type(uint32).max > 0) {
+ 68 | *   |             r -= 32;
+ 69 |     |         } else {
+ 70 | *   |             x >>= 32;
+ 71 |     |         }
+ 72 | *   |         if (x & type(uint16).max > 0) {
+ 73 | *   |             r -= 16;
+ 74 |     |         } else {
+ 75 | *   |             x >>= 16;
+ 76 |     |         }
+ 77 | *   |         if (x & type(uint8).max > 0) {
+ 78 | *   |             r -= 8;
+ 79 |     |         } else {
+ 80 | *   |             x >>= 8;
+ 81 |     |         }
+ 82 | *   |         if (x & 0xf > 0) {
+ 83 | *   |             r -= 4;
+ 84 |     |         } else {
+ 85 | *   |             x >>= 4;
+ 86 |     |         }
+ 87 | *   |         if (x & 0x3 > 0) {
+ 88 | *   |             r -= 2;
+ 89 |     |         } else {
+ 90 | *   |             x >>= 2;
+ 91 |     |         }
+ 92 | *   |         if (x & 0x1 > 0) r -= 1;
+ 93 |     |     }
+ 94 |     | }
+ 95 |     | 
+
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/libraries/TickBitmap.sol
+  1 |     | // SPDX-License-Identifier: BUSL-1.1
+  2 |     | pragma solidity >=0.5.0;
+  3 |     | 
+  4 |     | import './BitMath.sol';
+  5 |     | 
+  6 |     | /// @title Packed tick initialized state library
+  7 |     | /// @notice Stores a packed mapping of tick index to its initialized state
+  8 |     | /// @dev The mapping uses int16 for keys since ticks are represented as int24 and there are 256 (2^8) values per word.
+  9 |     | library TickBitmap {
+ 10 |     |     /// @notice Computes the position in the mapping where the initialized bit for a tick lives
+ 11 |     |     /// @param tick The tick for which to compute the position
+ 12 |     |     /// @return wordPos The key in the mapping containing the word in which the bit is stored
+ 13 |     |     /// @return bitPos The bit position in the word where the flag is stored
+ 14 | *   |     function position(int24 tick) private pure returns (int16 wordPos, uint8 bitPos) {
+ 15 | *   |         wordPos = int16(tick >> 8);
+ 16 | *   |         bitPos = uint8(tick % 256);
+ 17 |     |     }
+ 18 |     | 
+ 19 |     |     /// @notice Flips the initialized state for a given tick from false to true, or vice versa
+ 20 |     |     /// @param self The mapping in which to flip the tick
+ 21 |     |     /// @param tick The tick to flip
+ 22 |     |     /// @param tickSpacing The spacing between usable ticks
+ 23 | *   |     function flipTick(
+ 24 |     |         mapping(int16 => uint256) storage self,
+ 25 |     |         int24 tick,
+ 26 |     |         int24 tickSpacing
+ 27 |     |     ) internal {
+ 28 | *   |         require(tick % tickSpacing == 0); // ensure that the tick is spaced
+ 29 | *   |         (int16 wordPos, uint8 bitPos) = position(tick / tickSpacing);
+ 30 | *   |         uint256 mask = 1 << bitPos;
+ 31 | *   |         self[wordPos] ^= mask;
+ 32 |     |     }
+ 33 |     | 
+ 34 |     |     /// @notice Returns the next initialized tick contained in the same word (or adjacent word) as the tick that is either
+ 35 |     |     /// to the left (less than or equal to) or right (greater than) of the given tick
+ 36 |     |     /// @param self The mapping in which to compute the next initialized tick
+ 37 |     |     /// @param tick The starting tick
+ 38 |     |     /// @param tickSpacing The spacing between usable ticks
+ 39 |     |     /// @param lte Whether to search for the next initialized tick to the left (less than or equal to the starting tick)
+ 40 |     |     /// @return next The next initialized or uninitialized tick up to 256 ticks away from the current tick
+ 41 |     |     /// @return initialized Whether the next tick is initialized, as the function only searches within up to 256 ticks
+ 42 | *   |     function nextInitializedTickWithinOneWord(
+ 43 |     |         mapping(int16 => uint256) storage self,
+ 44 |     |         int24 tick,
+ 45 |     |         int24 tickSpacing,
+ 46 |     |         bool lte
+ 47 | *   |     ) internal view returns (int24 next, bool initialized) {
+ 48 | *   |         int24 compressed = tick / tickSpacing;
+ 49 | *   |         if (tick < 0 && tick % tickSpacing != 0) compressed--; // round towards negative infinity
+ 50 |     | 
+ 51 | *   |         if (lte) {
+ 52 | *   |             (int16 wordPos, uint8 bitPos) = position(compressed);
+ 53 |     |             // all the 1s at or to the right of the current bitPos
+ 54 | *   |             uint256 mask = (1 << bitPos) - 1 + (1 << bitPos);
+ 55 | *   |             uint256 masked = self[wordPos] & mask;
+ 56 |     | 
+ 57 |     |             // if there are no initialized ticks to the right of or at the current tick, return rightmost in the word
+ 58 | *   |             initialized = masked != 0;
+ 59 |     |             // overflow/underflow is possible, but prevented externally by limiting both tickSpacing and tick
+ 60 | *   |             next = initialized
+ 61 | *   |                 ? (compressed - int24(bitPos - BitMath.mostSignificantBit(masked))) * tickSpacing
+ 62 | *   |                 : (compressed - int24(bitPos)) * tickSpacing;
+ 63 |     |         } else {
+ 64 |     |             // start from the word of the next tick, since the current tick state doesn't matter
+ 65 | *   |             (int16 wordPos, uint8 bitPos) = position(compressed + 1);
+ 66 |     |             // all the 1s at or to the left of the bitPos
+ 67 | *   |             uint256 mask = ~((1 << bitPos) - 1);
+ 68 | *   |             uint256 masked = self[wordPos] & mask;
+ 69 |     | 
+ 70 |     |             // if there are no initialized ticks to the left of the current tick, return leftmost in the word
+ 71 | *   |             initialized = masked != 0;
+ 72 |     |             // overflow/underflow is possible, but prevented externally by limiting both tickSpacing and tick
+ 73 | *   |             next = initialized
+ 74 | *   |                 ? (compressed + 1 + int24(BitMath.leastSignificantBit(masked) - bitPos)) * tickSpacing
+ 75 | *   |                 : (compressed + 1 + int24(type(uint8).max - bitPos)) * tickSpacing;
+ 76 |     |         }
+ 77 |     |     }
+ 78 |     | }
+ 79 |     | 
+
+/home/lafhis/Desktop/tesis/ours/echidna/uniswap/test/TickBitmapEchidnaTest.sol
+  1 |     | // SPDX-License-Identifier: UNLICENSED
+  2 |     | pragma solidity =0.7.6;
+  3 |     | 
+  4 |     | import '../libraries/TickBitmap.sol';
+  5 |     | 
+  6 | *   | contract TickBitmapEchidnaTest {
+  7 |     |     using TickBitmap for mapping(int16 => uint256);
+  8 |     | 
+  9 |     |     mapping(int16 => uint256) private bitmap;
+ 10 |     | 
+ 11 |     |     // returns whether the given tick is initialized
+ 12 | *   |     function isInitialized(int24 tick) private view returns (bool) {
+ 13 | *   |         (int24 next, bool initialized) = bitmap.nextInitializedTickWithinOneWord(tick, 1, true);
+ 14 | *   |         return next == tick ? initialized : false;
+ 15 |     |     }
+ 16 |     | 
+ 17 | *   |     function flipTick(int24 tick) external {
+ 18 | *   |         bool before = isInitialized(tick);
+ 19 | *   |         bitmap.flipTick(tick, 1);
+ 20 | *   |         assert(isInitialized(tick) == !before);
+ 21 |     |     }
+ 22 |     | 
+ 23 | *   |     function checkNextInitializedTickWithinOneWordInvariants(int24 tick, bool lte) external view {
+ 24 | *   |         (int24 next, bool initialized) = bitmap.nextInitializedTickWithinOneWord(tick, 1, lte);
+ 25 | *   |         if (lte) {
+ 26 |     |             // type(int24).min + 256
+ 27 | *   |             require(tick >= -8388352);
+ 28 | *   |             assert(next <= tick);
+ 29 | *   |             assert(tick - next < 256);
+ 30 |     |             // all the ticks between the input tick and the next tick should be uninitialized
+ 31 | *   |             for (int24 i = tick; i > next; i--) {
+ 32 | *   |                 assert(!isInitialized(i));
+ 33 |     |             }
+ 34 | *   |             assert(isInitialized(next) == initialized);
+ 35 |     |         } else {
+ 36 |     |             // type(int24).max - 256
+ 37 | *   |             require(tick < 8388351);
+ 38 | *   |             assert(next > tick);
+ 39 | *   |             assert(next - tick <= 256);
+ 40 |     |             // all the ticks between the input tick and the next tick should be uninitialized
+ 41 | *   |             for (int24 i = tick + 1; i < next; i++) {
+ 42 | *   |                 assert(!isInitialized(i));
+ 43 |     |             }
+ 44 | *   |             assert(isInitialized(next) == initialized);
+ 45 |     |         }
+ 46 |     |     }
+ 47 |     | }
+ 48 |     | 
+
